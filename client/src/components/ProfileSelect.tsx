@@ -2,6 +2,8 @@ import "./ProfileSelect.css";
 
 interface ProfileSelectProps {
   onSelect: (profileId: string) => void;
+  onLogout: () => void;
+  username: string | null;
 }
 
 const profiles = [
@@ -13,10 +15,18 @@ const profiles = [
 
 const GRAFANA_URL = "http://localhost:3000";
 
-export default function ProfileSelect({ onSelect }: ProfileSelectProps) {
+export default function ProfileSelect({ onSelect, onLogout, username }: ProfileSelectProps) {
   return (
     <div className="profile-select">
-      <h2 className="profile-title">Who are you?</h2>
+      <div className="profile-header">
+        <h2 className="profile-title">Who are you?</h2>
+        <div className="profile-user-info">
+          <span className="profile-username">Logged in as: {username}</span>
+          <button onClick={onLogout} className="logout-button">
+            Logout
+          </button>
+        </div>
+      </div>
       <div className="profile-grid">
         {profiles.map((p) => (
           <button

@@ -86,36 +86,46 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 
 ## API Endpoints (Azure Functions)
 
-| Method | Route | Description |
-|--------|-------|-------------|
-| GET | `/api/entry/{profileId}/{date}` | Get entry for a profile on a date |
-| POST | `/api/entry` | Create a new daily entry |
-| GET | `/api/words/{profileId}` | Get all unique past words for autocomplete |
+| Method | Route | Description | Auth Required |
+|--------|-------|-------------|---------------|
+| POST | `/api/login` | Authenticate user and return JWT token | No |
+| GET | `/api/entry/{profileId}/{date}` | Get entry for a profile on a date | Yes |
+| POST | `/api/entry` | Create a new daily entry | Yes |
+| GET | `/api/words/{profileId}` | Get all unique past words for autocomplete | Yes |
 
 ## Auth Flow
 
-**Azure Static Web Apps Built-in Authentication** — authentication is handled entirely by Azure at the infrastructure level:
+**Simple Username/Password Authentication** — custom JWT-based authentication:
 
-1. User attempts to access any route
-2. Azure SWA checks if user is authenticated
-   - If not authenticated → redirects to Microsoft login page
-   - If authenticated but not in allowlist → shows 403 Forbidden
-3. User signs in with Microsoft account (works with both Microsoft and Gmail-linked accounts)
-4. Azure validates the user's email against the allowlist in `staticwebapp.config.json`
-   - Allowed: `tom87moore@gmail.com`, `laura_j_bates87@hotmail.com`
-5. If authorized, Azure allows the request to proceed to the app
-6. User sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
-7. Profile selection is trust-based within the authenticated family — no per-profile passwords
+1. User visits the app and sees a login form
+2. User enters username (`tom` or `laura`) and password
+3. Optionally checks "Remember me" to persist login
+4. Frontend sends credentials to `POST /api/login`
+5. API validates credentials against hardcoded bcrypt hashes
+6. If valid, API returns a JWT token (expires in 7 days, or 90 days if "remember me")
+7. Frontend stores token in localStorage (if remember me) or sessionStorage
+8. All subsequent API calls include token in `Authorization: Bearer <token>` header
+9. API middleware validates token on each request
+10. User sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
+11. Profile selection is trust-based within the authenticated family — no per-profile passwords
 
 **Key Points:**
-- No custom auth code required — fully managed by Azure
-- Authentication protects both frontend routes AND API endpoints
-- Email allowlist configured in `staticwebapp.config.json`
-- No tokens or Authorization headers needed in frontend code
+- Two hardcoded users: `tom` and `laura`
+- Passwords stored as bcrypt hashes in API code (never plain text)
+- JWT tokens for session management
+- "Remember me" extends token lifetime and uses localStorage
+- All API endpoints protected by token validation middleware
+
+**Security Notes:**
+- Passwords hashed with bcrypt (cost factor 10)
+- JWT signed with secret key (stored in Azure app settings)
+- Tokens expire after 7 days (or 90 days with remember me)
+- No password reset flow (family app, can update code to change passwords)
 
 **Environment Variables:**
 - `BUILD_NUMBER` (Client build): GitHub Actions run number for version badge
 - `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` (API): Cosmos DB connection
+- `JWT_SECRET` (API): Secret key for signing JWT tokens
 
 ## Grafana Setup
 
@@ -146,11 +156,14 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 - Wire up API calls
 
 ### Phase 4: Authentication
-- Configure `staticwebapp.config.json` with Azure SWA built-in auth
-- Set provider to Microsoft
-- Add email allowlist: `tom87moore@gmail.com`, `laura_j_bates87@hotmail.com`
-- Configure route protection for all routes (frontend + API)
-- No frontend code changes required — auth handled at Azure level
+- Create `login` API function with hardcoded users (tom, laura)
+- Hash passwords using bcrypt
+- Generate JWT tokens with 7-day expiry (90-day for remember me)
+- Create auth middleware for token validation
+- Build login form component with username/password fields and "remember me" checkbox
+- Store token in localStorage (remember me) or sessionStorage
+- Add Authorization header to all API calls
+- Protect all API endpoints with auth middleware
 
 ### Phase 5: Deploy
 - Create Azure Static Web App resource
