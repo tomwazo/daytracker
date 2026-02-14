@@ -22,22 +22,45 @@ export async function validateAuth(
 
   try {
     const res = await fetch(`${GOOGLE_CERTS_URL}?id_token=${token}`);
+    const body = await res.text();
+
     if (!res.ok) {
-      return { status: 401, jsonBody: { error: "Invalid token" } };
+      return {
+        status: 401,
+        jsonBody: {
+          error: "Invalid token",
+          detail: `Google returned ${res.status}: ${body}`,
+        },
+      };
     }
 
-    const payload = (await res.json()) as { aud: string; email?: string };
+    const payload = JSON.parse(body) as { aud: string; email?: string };
     if (payload.aud !== clientId) {
-      return { status: 401, jsonBody: { error: "Token audience mismatch" } };
+      return {
+        status: 401,
+        jsonBody: {
+          error: "Token audience mismatch",
+          detail: `Expected ${clientId}, got ${payload.aud}`,
+        },
+      };
     }
 
     const email = payload.email?.toLowerCase();
     if (!email || !ALLOWED_EMAILS.includes(email)) {
-      return { status: 403, jsonBody: { error: "Email not authorized" } };
+      return {
+        status: 403,
+        jsonBody: { error: "Email not authorized", detail: email },
+      };
     }
 
     return null; // Auth passed
-  } catch {
-    return { status: 401, jsonBody: { error: "Token validation failed" } };
+  } catch (err) {
+    return {
+      status: 401,
+      jsonBody: {
+        error: "Token validation failed",
+        detail: err instanceof Error ? err.message : String(err),
+      },
+    };
   }
 }
