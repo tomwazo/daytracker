@@ -9,9 +9,13 @@
   },
   "dependencies": {
     "@azure/cosmos": "^4.2.0",
-    "@azure/functions": "^4.6.0"
+    "@azure/functions": "^4.6.0",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^25.2.3",
     "azure-functions-core-tools": "^4.0.0",
     "typescript": "^5.7.0"

@@ -38,11 +38,12 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 ### Phase 4: Authentication
 
-- Google Sign-In integration via GSI library (`client/src/components/Login.tsx`)
-- Token stored in memory and sent as `Authorization: Bearer <token>` on API calls
-- Auth middleware (`api/src/authMiddleware.ts`) validates Google ID tokens against `GOOGLE_CLIENT_ID`
-- Auth is skipped in local dev when `GOOGLE_CLIENT_ID` is not set
-- `staticwebapp.config.json` route guard requires `authenticated` role for `/api/*`
+- **Status: Needs re-implementation** (switching from Azure AD to username/password)
+- Simple username/password login (usernames: `tom` and `laura`)
+- JWT-based session management
+- "Remember me" option for persistent login
+- Passwords stored as bcrypt hashes in API code
+- Token validation middleware on all protected endpoints
 
 ### Build Verification
 

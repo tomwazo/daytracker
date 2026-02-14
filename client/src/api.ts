@@ -9,11 +9,24 @@ export interface DayEntry {
   createdAt: string;
 }
 
+function getAuthHeaders(): HeadersInit {
+  const token =
+    localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
+  if (!token) {
+    throw new Error("No authentication token found");
+  }
+  return {
+    Authorization: `Bearer ${token}`,
+  };
+}
+
 export async function fetchEntry(
   profileId: string,
   date: string
 ): Promise<DayEntry | null> {
-  const res = await fetch(`${BASE}/entry/${profileId}/${date}`);
+  const res = await fetch(`${BASE}/entry/${profileId}/${date}`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error("Failed to fetch entry");
   const data = await res.json();
   return data.entry;
@@ -27,7 +40,10 @@ export async function submitEntry(entry: {
 }): Promise<DayEntry> {
   const res = await fetch(`${BASE}/entry`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...getAuthHeaders(),
+    },
     body: JSON.stringify(entry),
   });
   if (!res.ok) {
@@ -45,7 +61,9 @@ export async function submitEntry(entry: {
 }
 
 export async function fetchWords(profileId: string): Promise<string[]> {
-  const res = await fetch(`${BASE}/words/${profileId}`);
+  const res = await fetch(`${BASE}/words/${profileId}`, {
+    headers: getAuthHeaders(),
+  });
   if (!res.ok) throw new Error("Failed to fetch words");
   return res.json();
 }

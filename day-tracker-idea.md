@@ -26,11 +26,14 @@ A web application for daily self-reflection, allowing users to score their day a
 
 ### Authentication
 
-- **Azure Static Web Apps built-in authentication** using Microsoft as the provider
-- Access restricted to **two allowed email addresses**:
-  - `tom87moore@gmail.com` (Microsoft account)
-  - `laura_j_bates87@hotmail.com` (Microsoft account)
-- Unauthorized users are blocked at the Azure level before reaching the app
+- **Simple username/password authentication**
+- Two user accounts:
+  - Username: `tom`
+  - Username: `laura`
+- Passwords stored as bcrypt hashes in the API code (not in database)
+- Session-based authentication using JWT tokens
+- **"Remember me" option** to stay logged in across browser sessions
+- Login form shown on first visit
 - Authentication protects both the frontend UI and API endpoints
 
 ### Multi-User Support
