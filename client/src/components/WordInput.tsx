@@ -38,7 +38,9 @@ export default function WordInput({
         value={value}
         placeholder={placeholder}
         onChange={(e) => {
-          onChange(e.target.value);
+          // Remove spaces from input
+          const valueWithoutSpaces = e.target.value.replace(/\s/g, '');
+          onChange(valueWithoutSpaces);
           setShowSuggestions(true);
         }}
         onFocus={() => setShowSuggestions(true)}

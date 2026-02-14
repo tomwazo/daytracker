@@ -56,7 +56,24 @@ async function createEntry(
     };
   }
 
+  // Check for spaces in words
+  if (body.words.some((w) => /\s/.test(w))) {
+    return {
+      status: 400,
+      jsonBody: { error: "Words cannot contain spaces" },
+    };
+  }
+
   const words = body.words.map((w) => w.trim().toLowerCase());
+
+  // Check for duplicate words
+  const uniqueWords = new Set(words);
+  if (uniqueWords.size !== words.length) {
+    return {
+      status: 400,
+      jsonBody: { error: "Each word must be unique" },
+    };
+  }
   const id = `${body.profileId}-${body.date}`;
 
   const document = {
