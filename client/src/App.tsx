@@ -22,12 +22,55 @@ export default function App() {
         const response = await fetch("/.auth/me");
         const data = await response.json();
 
-        const userEmail = data.clientPrincipal?.userDetails?.toLowerCase();
+        // Debug: Log the full auth response
+        console.log("Full auth response:", JSON.stringify(data, null, 2));
+        console.log("clientPrincipal:", data.clientPrincipal);
+
+        // Try multiple possible locations for email
+        let userEmail: string | null = null;
+
+        if (data.clientPrincipal) {
+          const cp = data.clientPrincipal;
+
+          // Check userDetails (common location)
+          if (cp.userDetails) {
+            userEmail = cp.userDetails;
+            console.log("Email found in userDetails:", userEmail);
+          }
+
+          // Check claims array for email
+          if (!userEmail && cp.claims) {
+            const emailClaim = cp.claims.find((claim: any) =>
+              claim.typ === "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress" ||
+              claim.typ === "emails" ||
+              claim.typ === "email"
+            );
+            if (emailClaim) {
+              userEmail = emailClaim.val;
+              console.log("Email found in claims:", userEmail);
+            }
+          }
+
+          // Check userId as fallback
+          if (!userEmail && cp.userId) {
+            userEmail = cp.userId;
+            console.log("Using userId as email:", userEmail);
+          }
+        }
+
+        console.log("Final extracted email:", userEmail);
+
+        if (userEmail) {
+          userEmail = userEmail.toLowerCase();
+        }
 
         if (!userEmail || !ALLOWED_EMAILS.includes(userEmail)) {
+          console.error("Email not in allowlist. Email:", userEmail, "Allowlist:", ALLOWED_EMAILS);
           setAuthError(
             `Access denied. This app is restricted to authorized family members only. Your email (${userEmail || "unknown"}) is not authorized.`
           );
+        } else {
+          console.log("Access granted for email:", userEmail);
         }
       } catch (error) {
         console.error("Auth check failed:", error);
