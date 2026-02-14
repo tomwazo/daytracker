@@ -2,9 +2,10 @@ import { useState, useEffect } from "react";
 import ProfileSelect from "./components/ProfileSelect";
 import DayEntry from "./components/DayEntry";
 import Login from "./components/Login";
+import Dashboard from "./components/Dashboard";
 import VersionBadge from "./components/VersionBadge";
 
-type Screen = "login" | "profiles" | "entry";
+type Screen = "login" | "profiles" | "entry" | "dashboard";
 
 export default function App() {
   const [screen, setScreen] = useState<Screen>("login");
@@ -42,6 +43,10 @@ export default function App() {
     setScreen("profiles");
   }
 
+  function handleViewInsights() {
+    setScreen("dashboard");
+  }
+
   function handleLogout() {
     localStorage.removeItem("authToken");
     localStorage.removeItem("username");
@@ -68,11 +73,17 @@ export default function App() {
     <>
       <VersionBadge />
       {screen === "profiles" && (
-        <ProfileSelect onSelect={handleSelectProfile} onLogout={handleLogout} username={username} />
+        <ProfileSelect
+          onSelect={handleSelectProfile}
+          onLogout={handleLogout}
+          onViewInsights={handleViewInsights}
+          username={username}
+        />
       )}
       {screen === "entry" && profile && (
         <DayEntry profileId={profile} onBack={handleBack} />
       )}
+      {screen === "dashboard" && <Dashboard onBack={handleBack} />}
     </>
   );
 }

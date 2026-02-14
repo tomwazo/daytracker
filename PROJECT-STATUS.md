@@ -151,92 +151,83 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 ---
 
-### Phase 6: Grafana Dashboards
+### Phase 6: Interactive Dashboard
 
-#### 6.1 — Deploy Grafana on Azure Container Instance
+Build an integrated analytics dashboard directly in the app using Recharts.
 
-1. Go to Azure Portal → **Create a resource** → search **Container Instances**
-2. Click **Create** and fill in:
-   - **Resource Group**: `daytracker-rg`
-   - **Container name**: `daytracker-grafana`
-   - **Image source**: Docker Hub
-   - **Image**: `grafana/grafana:latest`
-   - **OS type**: Linux
-   - **Size**: 1 vCPU, 1.5 GiB memory (minimum)
-3. On the **Networking** tab:
-   - **DNS name label**: e.g. `daytracker-grafana` (gives you `daytracker-grafana.<region>.azurecontainer.io`)
-   - **Port**: `3000` (TCP)
-4. On the **Advanced** tab, add environment variables:
-   - `GF_SECURITY_ADMIN_PASSWORD` = a strong password
-   - `GF_SERVER_ROOT_URL` = `http://daytracker-grafana.<region>.azurecontainer.io:3000`
-5. Click **Review + Create** → **Create**
-6. Once running, open `http://daytracker-grafana.<region>.azurecontainer.io:3000` and log in with `admin` / your password
+#### 6.1 — Add Analytics API Endpoints
 
-**Alternative (local):** Run `docker-compose up -d` from `infra/grafana/` for local testing.
+Create three new Azure Functions for aggregated data:
 
-#### 6.2 — Connect Grafana to Data
+1. **GET `/api/analytics/entries`**
+   - Query parameters: `startDate`, `endDate`, `profileId` (optional)
+   - Returns all entries in date range, optionally filtered by profile
+   - Used for: score chart, entries table
 
-**Option A — JSON API datasource (recommended, simpler):**
+2. **GET `/api/analytics/word-frequency`**
+   - Query parameters: `startDate`, `endDate`, `profileId` (optional)
+   - Returns word frequency counts for the period
+   - Used for: word frequency bar chart
 
-1. In Grafana, go to **Connections** → **Add new connection** → search **JSON API**
-2. Install the JSON API datasource plugin if prompted
-3. Set the URL to your Azure Functions API:
-   - `https://<your-app-name>.azurestaticapps.net/api`
-4. Under **Custom HTTP Headers**, add:
-   - Header: `Authorization`, Value: `Bearer <a-valid-google-token>` (or create a separate service token)
-5. Click **Save & Test**
+3. **GET `/api/analytics/stats`**
+   - Query parameters: `startDate`, `endDate`
+   - Returns summary statistics (average score per profile)
+   - Used for: stats cards display
 
-**Option B — Direct Cosmos DB connection:**
+All endpoints require authentication (JWT token).
 
-1. Install the **Azure Data Explorer** plugin in Grafana
-2. Configure it with your Cosmos DB connection string
-3. Write KQL queries against the `entries` container
+#### 6.2 — Install Dependencies
 
-#### 6.3 — Build the Dashboards
+```bash
+npm install recharts --workspace=client
+npm install date-fns --workspace=client  # for date manipulation
+```
 
-Create a new dashboard in Grafana and add the following panels:
+#### 6.3 — Build Dashboard Components
 
-**Panel 1: Score Over Time (line chart)**
-- Query: fetch all entries, group by `profileId`
-- Visualization: Time series / Line chart
-- X-axis: `date`, Y-axis: `score`
-- One line per profile (Daddy, Mommy, Tabitha, Imogen)
-- Set Y-axis range to 1–10
+Create new components in `client/src/components/`:
 
-**Panel 2: Word Frequency (bar chart)**
-- Query: count occurrences of each word across all entries
-- Visualization: Bar chart
-- X-axis: word, Y-axis: count
-- Optionally filter by profile using a dashboard variable
-- Sort by count descending, show top 20
+1. **Dashboard.tsx** — Main dashboard page
+   - Date range selector (Last 7/30/90 days, All time, Custom)
+   - Profile filter dropdown
+   - Layout with charts and stats
 
-**Panel 3: Words Over Time (table)**
-- Query: fetch all entries ordered by date descending
-- Visualization: Table
-- Columns: Date, Profile, Score, Word 1, Word 2, Word 3
-- Add filters for profile and date range
+2. **ScoreChart.tsx** — Line chart component
+   - Uses Recharts `LineChart`
+   - One line per family member
+   - Y-axis range: 1-10
 
-**Panel 4: Word Cloud**
-- Install the **Word Cloud** panel plugin (search Grafana plugin marketplace)
-- Query: same as word frequency — each word with its count
-- Configure font size scaling based on frequency
+3. **WordFrequencyChart.tsx** — Bar chart component
+   - Uses Recharts `BarChart`
+   - Top 20 most-used words
+   - Horizontal bars for readability
 
-#### 6.4 — Link the App to Grafana
+4. **StatsCards.tsx** — Summary statistics
+   - Average score per profile
+   - Total entries in period
+   - Card-based layout
 
-1. Find your Grafana URL (e.g. `http://daytracker-grafana.<region>.azurecontainer.io:3000`)
-2. Update `client/src/components/ProfileSelect.tsx`:
-   - Change `const GRAFANA_URL = "http://localhost:3000"` to your deployed URL
-3. Commit and push — the app's "View Dashboards" button will now link to Grafana
+5. **EntriesTable.tsx** — Recent entries table
+   - Paginated list of entries
+   - Columns: Date, Profile, Score, Words
+   - Click to view details
 
-#### 6.5 — Secure Grafana
+#### 6.4 — Add Navigation
 
-1. In Grafana, go to **Administration** → **General** → **Settings**
-2. Consider enabling anonymous access for read-only dashboard viewing:
-   - Set `GF_AUTH_ANONYMOUS_ENABLED` = `true`
-   - Set `GF_AUTH_ANONYMOUS_ORG_ROLE` = `Viewer`
-   - This lets family members view dashboards without a separate Grafana login
-3. Alternatively, create individual Grafana viewer accounts for each family member
-4. For production, consider putting Grafana behind HTTPS using Azure Application Gateway or a reverse proxy
+1. Update `ProfileSelect.tsx`:
+   - Change "View Dashboards" button to "View Insights"
+   - Click navigates to `/dashboard` route
+
+2. Update `App.tsx`:
+   - Add `dashboard` screen to state
+   - Add Dashboard component to rendering logic
+
+#### 6.5 — Style the Dashboard
+
+- Use existing CSS variables for consistency
+- Responsive layout (mobile-friendly)
+- Loading states while fetching data
+- Empty states when no data in range
 
 ## File Structure
 

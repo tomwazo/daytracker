@@ -3,6 +3,7 @@ import "./ProfileSelect.css";
 interface ProfileSelectProps {
   onSelect: (profileId: string) => void;
   onLogout: () => void;
+  onViewInsights: () => void;
   username: string | null;
 }
 
@@ -13,9 +14,7 @@ const profiles = [
   { id: "imogen", label: "Imogen", emoji: "\u{1F476}" },
 ];
 
-const GRAFANA_URL = "http://localhost:3000";
-
-export default function ProfileSelect({ onSelect, onLogout, username }: ProfileSelectProps) {
+export default function ProfileSelect({ onSelect, onLogout, onViewInsights, username }: ProfileSelectProps) {
   return (
     <div className="profile-select">
       <div className="profile-header">
@@ -39,14 +38,12 @@ export default function ProfileSelect({ onSelect, onLogout, username }: ProfileS
           </button>
         ))}
       </div>
-      <a
-        href={GRAFANA_URL}
-        target="_blank"
-        rel="noopener noreferrer"
+      <button
+        onClick={onViewInsights}
         className="dashboard-link"
       >
-        View Dashboards
-      </a>
+        📊 View Insights
+      </button>
     </div>
   );
 }

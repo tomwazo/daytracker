@@ -92,6 +92,9 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 | GET | `/api/entry/{profileId}/{date}` | Get entry for a profile on a date | Yes |
 | POST | `/api/entry` | Create a new daily entry | Yes |
 | GET | `/api/words/{profileId}` | Get all unique past words for autocomplete | Yes |
+| GET | `/api/analytics/entries?startDate={date}&endDate={date}&profileId={id}` | Get entries for date range, optionally filtered by profile | Yes |
+| GET | `/api/analytics/word-frequency?startDate={date}&endDate={date}&profileId={id}` | Get word frequency counts for date range | Yes |
+| GET | `/api/analytics/stats?startDate={date}&endDate={date}` | Get summary statistics (avg scores per profile) | Yes |
 
 ## Auth Flow
 
@@ -127,12 +130,28 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 - `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` (API): Cosmos DB connection
 - `JWT_SECRET` (API): Secret key for signing JWT tokens
 
-## Grafana Setup
+## Interactive Dashboard
 
-- Run Grafana in an **Azure Container Instance** (ACI)
-- Use the **Cosmos DB / Azure Data Explorer plugin** or a **JSON API datasource** pointing at the Azure Functions API
-- Four dashboards as specified: score over time, word frequency, words over time, word cloud
-- The "View Dashboards" button in the app links to the Grafana instance URL
+Built-in analytics dashboard using **Recharts** (React charting library):
+
+**Frontend Components:**
+- `Dashboard.tsx` — Main dashboard page with charts and filters
+- `DateRangePicker.tsx` — Date range selector component
+- `ScoreChart.tsx` — Line chart showing scores over time
+- `WordFrequencyChart.tsx` — Bar chart of word usage
+- `StatsCards.tsx` — Summary statistics display
+- `EntriesTable.tsx` — Paginated table of entries
+
+**Date Filtering:**
+- Preset ranges: "Last 7 days", "Last 30 days", "Last 90 days", "All time"
+- Custom date picker for specific date ranges
+- Profile filter to show one person or all
+- All filters update charts in real-time
+
+**API Integration:**
+- Three new analytics endpoints for aggregated data
+- All endpoints support date range and profile filtering
+- Data cached on frontend for smooth interactions
 
 ## Implementation Order
 
@@ -187,11 +206,15 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 - Add frontend validation in WordInput and DayEntry components
 - Add backend validation in createEntry function
 
-### Phase 6: Grafana
-- Deploy Grafana container on Azure Container Instance
-- Connect to Cosmos DB data
-- Build the four dashboards
-- Link from the app's dashboard button
+### Phase 6: Interactive Dashboard
+- Install Recharts library (`npm install recharts`)
+- Create analytics API endpoints (entries, word-frequency, stats)
+- Build Dashboard component with date range controls
+- Implement ScoreChart (line chart), WordFrequencyChart (bar chart)
+- Add StatsCards for summary metrics (avg scores per profile)
+- Create EntriesTable for browsing past entries
+- Add "View Insights" button in ProfileSelect
+- Add navigation to Dashboard page in App.tsx
 
 ## Deployment & Git Workflow
 
