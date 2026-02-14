@@ -26,36 +26,40 @@ export default function App() {
         console.log("Full auth response:", JSON.stringify(data, null, 2));
         console.log("clientPrincipal:", data.clientPrincipal);
 
+        // If not authenticated, redirect to login
+        if (!data.clientPrincipal) {
+          console.log("Not authenticated, redirecting to login...");
+          window.location.href = "/.auth/login/aad";
+          return;
+        }
+
         // Try multiple possible locations for email
         let userEmail: string | null = null;
+        const cp = data.clientPrincipal;
 
-        if (data.clientPrincipal) {
-          const cp = data.clientPrincipal;
+        // Check userDetails (common location)
+        if (cp.userDetails) {
+          userEmail = cp.userDetails;
+          console.log("Email found in userDetails:", userEmail);
+        }
 
-          // Check userDetails (common location)
-          if (cp.userDetails) {
-            userEmail = cp.userDetails;
-            console.log("Email found in userDetails:", userEmail);
+        // Check claims array for email
+        if (!userEmail && cp.claims) {
+          const emailClaim = cp.claims.find((claim: any) =>
+            claim.typ === "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress" ||
+            claim.typ === "emails" ||
+            claim.typ === "email"
+          );
+          if (emailClaim) {
+            userEmail = emailClaim.val;
+            console.log("Email found in claims:", userEmail);
           }
+        }
 
-          // Check claims array for email
-          if (!userEmail && cp.claims) {
-            const emailClaim = cp.claims.find((claim: any) =>
-              claim.typ === "http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress" ||
-              claim.typ === "emails" ||
-              claim.typ === "email"
-            );
-            if (emailClaim) {
-              userEmail = emailClaim.val;
-              console.log("Email found in claims:", userEmail);
-            }
-          }
-
-          // Check userId as fallback
-          if (!userEmail && cp.userId) {
-            userEmail = cp.userId;
-            console.log("Using userId as email:", userEmail);
-          }
+        // Check userId as fallback
+        if (!userEmail && cp.userId) {
+          userEmail = cp.userId;
+          console.log("Using userId as email:", userEmail);
         }
 
         console.log("Final extracted email:", userEmail);
@@ -64,6 +68,7 @@ export default function App() {
           userEmail = userEmail.toLowerCase();
         }
 
+        // Check if email is in allowlist
         if (!userEmail || !ALLOWED_EMAILS.includes(userEmail)) {
           console.error("Email not in allowlist. Email:", userEmail, "Allowlist:", ALLOWED_EMAILS);
           setAuthError(
