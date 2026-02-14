@@ -14,9 +14,9 @@ export async function fetchEntry(
   date: string
 ): Promise<DayEntry | null> {
   const res = await fetch(`${BASE}/entry/${profileId}/${date}`);
-  if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch entry");
-  return res.json();
+  const data = await res.json();
+  return data.entry;
 }
 
 export async function submitEntry(entry: {
