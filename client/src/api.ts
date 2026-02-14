@@ -1,5 +1,3 @@
-import { getToken } from "./auth";
-
 const BASE = "/api";
 
 export interface DayEntry {
@@ -11,21 +9,11 @@ export interface DayEntry {
   createdAt: string;
 }
 
-function authHeaders(): Record<string, string> {
-  const token = getToken();
-  if (token) {
-    return { Authorization: `Bearer ${token}` };
-  }
-  return {};
-}
-
 export async function fetchEntry(
   profileId: string,
   date: string
 ): Promise<DayEntry | null> {
-  const res = await fetch(`${BASE}/entry/${profileId}/${date}`, {
-    headers: authHeaders(),
-  });
+  const res = await fetch(`${BASE}/entry/${profileId}/${date}`);
   if (res.status === 404) return null;
   if (!res.ok) throw new Error("Failed to fetch entry");
   return res.json();
@@ -39,20 +27,25 @@ export async function submitEntry(entry: {
 }): Promise<DayEntry> {
   const res = await fetch(`${BASE}/entry`, {
     method: "POST",
-    headers: { "Content-Type": "application/json", ...authHeaders() },
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(entry),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error || "Failed to submit entry");
+    const text = await res.text();
+    let message = `Failed to submit entry (${res.status})`;
+    try {
+      const err = JSON.parse(text);
+      if (err.error) message = err.error;
+    } catch {
+      if (text) message = text;
+    }
+    throw new Error(message);
   }
   return res.json();
 }
 
 export async function fetchWords(profileId: string): Promise<string[]> {
-  const res = await fetch(`${BASE}/words/${profileId}`, {
-    headers: authHeaders(),
-  });
+  const res = await fetch(`${BASE}/words/${profileId}`);
   if (!res.ok) throw new Error("Failed to fetch words");
   return res.json();
 }
