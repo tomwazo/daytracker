@@ -62,6 +62,19 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
       return;
     }
 
+    // Check for spaces in words
+    if (trimmed.some((w) => /\s/.test(w))) {
+      setError("Words cannot contain spaces.");
+      return;
+    }
+
+    // Check for duplicate words
+    const uniqueWords = new Set(trimmed.map((w) => w.toLowerCase()));
+    if (uniqueWords.size !== trimmed.length) {
+      setError("Each word must be unique.");
+      return;
+    }
+
     try {
       await submitEntry({ profileId, date: today, score, words: trimmed });
       setSubmitted(true);

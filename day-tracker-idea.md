@@ -19,20 +19,20 @@ A web application for daily self-reflection, allowing users to score their day a
 ### Word Input
 
 - Freeform text input (any word allowed)
+- **No spaces allowed** — words must be single words without spaces
+- **No duplicate words** — the same word cannot be entered twice in a single day's entry
 - **Autocomplete suggestions** drawn from the user's own previously entered words
 - Suggestions build up organically over time, creating a personal vocabulary
 
 ### Multi-User Support
 
-- **Landing page** displays a **sign-in form** using **SSO** (Single Sign-On)
-- Sign-in is restricted to **allowed email addresses only** — currently only `tom87moore@gmail.com`
-- Unauthorized emails are rejected with an error message after sign-in
-- Upon successful sign-in, the user is presented with a **2x2 grid of buttons**, one per family member
+- The app loads directly to a **2x2 grid of buttons**, one per family member
 - Four fixed profiles: **Daddy**, **Mommy**, **Tabitha**, **Imogen**
 - Below the 2x2 grid, a **fifth button** for **viewing the Grafana dashboards**
 - Selecting a profile takes you to that user's daily entry screen
 - Selecting the dashboard button takes you to the Grafana visualizations
 - Each profile has its own separate data and word history
+- No authentication required — trust-based access for this private family app
 
 ### Grafana Dashboards
 
