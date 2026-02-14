@@ -23,11 +23,11 @@ async function getEntry(
   try {
     const { resource } = await container.item(id, profileId).read();
     if (!resource) {
-      return { status: 404, jsonBody: { error: "Entry not found" } };
+      return { status: 200, jsonBody: { entry: null } };
     }
-    return { jsonBody: resource };
+    return { status: 200, jsonBody: { entry: resource } };
   } catch {
-    return { status: 404, jsonBody: { error: "Entry not found" } };
+    return { status: 200, jsonBody: { entry: null } };
   }
 }
 
