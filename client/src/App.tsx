@@ -2,6 +2,7 @@ import { useState } from "react";
 import Login from "./components/Login";
 import ProfileSelect from "./components/ProfileSelect";
 import DayEntry from "./components/DayEntry";
+import VersionBadge from "./components/VersionBadge";
 
 type Screen = "login" | "profiles" | "entry";
 
@@ -25,6 +26,7 @@ export default function App() {
 
   return (
     <>
+      <VersionBadge />
       {screen === "login" && <Login onLogin={handleLogin} />}
       {screen === "profiles" && (
         <ProfileSelect onSelect={handleSelectProfile} />

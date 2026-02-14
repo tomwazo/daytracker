@@ -25,6 +25,8 @@ A web application for daily self-reflection, allowing users to score their day a
 ### Multi-User Support
 
 - **Landing page** displays a **sign-in form** using **SSO** (Single Sign-On)
+- Sign-in is restricted to **allowed email addresses only** — currently only `tom87moore@gmail.com`
+- Unauthorized emails are rejected with an error message after sign-in
 - Upon successful sign-in, the user is presented with a **2x2 grid of buttons**, one per family member
 - Four fixed profiles: **Daddy**, **Mommy**, **Tabitha**, **Imogen**
 - Below the 2x2 grid, a **fifth button** for **viewing the Grafana dashboards**
@@ -45,6 +47,11 @@ Four visualizations for exploring your data:
 
 - Hosted on a **free Azure account**
 - Accessible via the web
+
+### Version Display
+
+- A **version number** is displayed in the **top-right corner** of every page
+- The version number is **automatically incremented** on each new build/deployment
 
 ## Scope
 

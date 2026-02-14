@@ -30,3 +30,9 @@
 .login-button:hover {
   background: var(--color-primary-hover);
 }
+
+.login-error {
+  color: var(--color-score-low);
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}

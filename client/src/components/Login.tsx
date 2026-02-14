@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { getClientId, setToken } from "../auth";
 import "./Login.css";
 
@@ -24,6 +24,7 @@ interface LoginProps {
 
 export default function Login({ onLogin }: LoginProps) {
   const buttonRef = useRef<HTMLDivElement>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const clientId = getClientId();
@@ -35,8 +36,20 @@ export default function Login({ onLogin }: LoginProps) {
     script.onload = () => {
       window.google?.accounts.id.initialize({
         client_id: clientId,
-        callback: (response: { credential: string }) => {
+        callback: async (response: { credential: string }) => {
           setToken(response.credential);
+          // Verify the email is allowed by making a test API call
+          try {
+            const res = await fetch("/api/words/daddy", {
+              headers: { Authorization: `Bearer ${response.credential}` },
+            });
+            if (res.status === 403) {
+              setError("This email is not authorized to use Day Tracker.");
+              return;
+            }
+          } catch {
+            // If the check fails, let them through — the API will catch it later
+          }
           onLogin();
         },
       });
@@ -61,6 +74,7 @@ export default function Login({ onLogin }: LoginProps) {
     <div className="login">
       <h1 className="login-title">Day Tracker</h1>
       <p className="login-subtitle">How was your day?</p>
+      {error && <p className="login-error">{error}</p>}
       {clientId ? (
         <div ref={buttonRef} className="google-button-container" />
       ) : (
