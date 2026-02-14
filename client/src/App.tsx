@@ -1,18 +1,13 @@
 import { useState } from "react";
-import Login from "./components/Login";
 import ProfileSelect from "./components/ProfileSelect";
 import DayEntry from "./components/DayEntry";
 import VersionBadge from "./components/VersionBadge";
 
-type Screen = "login" | "profiles" | "entry";
+type Screen = "profiles" | "entry";
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("login");
+  const [screen, setScreen] = useState<Screen>("profiles");
   const [profile, setProfile] = useState<string | null>(null);
-
-  function handleLogin() {
-    setScreen("profiles");
-  }
 
   function handleSelectProfile(profileId: string) {
     setProfile(profileId);
@@ -27,7 +22,6 @@ export default function App() {
   return (
     <>
       <VersionBadge />
-      {screen === "login" && <Login onLogin={handleLogin} />}
       {screen === "profiles" && (
         <ProfileSelect onSelect={handleSelectProfile} />
       )}

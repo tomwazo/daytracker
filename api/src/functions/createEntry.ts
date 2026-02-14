@@ -5,7 +5,6 @@ import {
   InvocationContext,
 } from "@azure/functions";
 import { getContainer } from "../cosmosClient.js";
-import { validateAuth } from "../authMiddleware.js";
 
 interface EntryBody {
   profileId: string;
@@ -20,9 +19,6 @@ async function createEntry(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const authError = await validateAuth(request);
-  if (authError) return authError;
-
   const body = (await request.json()) as EntryBody;
 
   // Validate profileId

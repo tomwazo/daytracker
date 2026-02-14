@@ -5,14 +5,11 @@ import {
   InvocationContext,
 } from "@azure/functions";
 import { getContainer } from "../cosmosClient.js";
-import { validateAuth } from "../authMiddleware.js";
 
 async function getWords(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  const authError = await validateAuth(request);
-  if (authError) return authError;
   const profileId = request.params.profileId;
 
   if (!profileId) {
