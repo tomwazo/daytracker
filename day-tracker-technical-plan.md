@@ -11,7 +11,7 @@ Building the Day Tracker app described in `day-tracker-idea.md`: a family mindfu
 | Frontend | React + TypeScript |
 | Backend | Azure Functions (Node.js/TypeScript) |
 | Database | Azure Cosmos DB (NoSQL, free tier) |
-| Auth/SSO | Google Sign-In |
+| Auth/SSO | Azure Static Web Apps Built-in Auth (Microsoft provider) |
 | Dashboards | Grafana (self-hosted on Azure Container Instance) |
 | Hosting | Azure Static Web Apps (free tier, includes Azure Functions) |
 | CI/CD | GitHub → Azure Static Web Apps (built-in) |
@@ -23,8 +23,6 @@ mindfulness/
 ├── client/                         # React frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Login.tsx           # Google Sign-In with email validation
-│   │   │   ├── Login.css
 │   │   │   ├── ProfileSelect.tsx   # 2x2 grid + dashboard button
 │   │   │   ├── ProfileSelect.css
 │   │   │   ├── DayEntry.tsx        # Score + 3 words form
@@ -33,12 +31,13 @@ mindfulness/
 │   │   │   ├── WordInput.css
 │   │   │   ├── VersionBadge.tsx    # Version number display
 │   │   │   └── VersionBadge.css
-│   │   ├── api.ts                  # API client with auth headers
-│   │   ├── auth.ts                 # Token management
+│   │   ├── api.ts                  # API client
 │   │   ├── App.tsx                 # Main router
 │   │   ├── main.tsx                # Entry point
 │   │   ├── index.css               # Global styles
 │   │   └── vite-env.d.ts           # TypeScript declarations
+│   ├── public/
+│   │   └── favicon.svg             # App favicon
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
@@ -49,8 +48,7 @@ mindfulness/
 │   │   │   ├── getEntry.ts         # GET entry for profile/date
 │   │   │   ├── createEntry.ts      # POST new daily entry
 │   │   │   └── getWords.ts         # GET word history for autocomplete
-│   │   ├── cosmosClient.ts         # Cosmos DB connection
-│   │   └── authMiddleware.ts       # Google token validation & email allowlist
+│   │   └── cosmosClient.ts         # Cosmos DB connection
 │   ├── host.json
 │   ├── local.settings.json         # Local env vars (gitignored)
 │   ├── package.json
@@ -61,7 +59,7 @@ mindfulness/
 ├── .github/
 │   └── workflows/
 │       └── azure-static-web-apps-*.yml  # CI/CD with version injection
-├── staticwebapp.config.json        # SWA routing config (no auth guards)
+├── staticwebapp.config.json        # SWA config with auth and routing
 ├── .gitignore
 └── package.json                    # Root workspace
 ```
@@ -96,25 +94,28 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 
 ## Auth Flow
 
-1. User lands on the app → sees Google Sign-In button (uses Google GSI library)
-2. Google Sign-In returns an ID token (JWT)
-3. Frontend makes a test API call to verify the email is authorized
-   - If 403 returned, shows error: "This email is not authorized to use Day Tracker"
-   - If successful, proceeds to profile selection
-4. The token is sent to the backend on each API call via `Authorization: Bearer <token>` header
-5. Azure Functions middleware validates the token:
-   - Calls Google's tokeninfo endpoint to verify signature and expiry
-   - Checks `aud` (audience) matches the configured `GOOGLE_CLIENT_ID`
-   - Extracts email and verifies it's in the allowed list (defaults to `tom87moore@gmail.com`)
-   - Returns 401 for invalid tokens, 403 for unauthorized emails
-6. After sign-in, the user sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
+**Azure Static Web Apps Built-in Authentication** — authentication is handled entirely by Azure at the infrastructure level:
+
+1. User attempts to access any route
+2. Azure SWA checks if user is authenticated
+   - If not authenticated → redirects to Microsoft login page
+   - If authenticated but not in allowlist → shows 403 Forbidden
+3. User signs in with Microsoft account (works with both Microsoft and Gmail-linked accounts)
+4. Azure validates the user's email against the allowlist in `staticwebapp.config.json`
+   - Allowed: `tom87moore@gmail.com`, `laura_j_bates87@hotmail.com`
+5. If authorized, Azure allows the request to proceed to the app
+6. User sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
 7. Profile selection is trust-based within the authenticated family — no per-profile passwords
 
+**Key Points:**
+- No custom auth code required — fully managed by Azure
+- Authentication protects both frontend routes AND API endpoints
+- Email allowlist configured in `staticwebapp.config.json`
+- No tokens or Authorization headers needed in frontend code
+
 **Environment Variables:**
-- `GOOGLE_CLIENT_ID` (API): OAuth client ID, enables auth validation
-- `VITE_GOOGLE_CLIENT_ID` (Client build): Shows real Google button vs dev mode
-- `ALLOWED_EMAILS` (API, optional): Comma-separated list of allowed emails (default: `tom87moore@gmail.com`)
 - `BUILD_NUMBER` (Client build): GitHub Actions run number for version badge
+- `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` (API): Cosmos DB connection
 
 ## Grafana Setup
 
@@ -145,23 +146,21 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 - Wire up API calls
 
 ### Phase 4: Authentication
-- Integrate Google Sign-In on the frontend using GSI library
-- Add token validation middleware in Azure Functions
-- Implement email allowlist check (defaults to `tom87moore@gmail.com`)
-- Add frontend error handling for unauthorized emails
-- ~~Add `staticwebapp.config.json` route guards~~ (removed - conflicts with custom auth)
+- Configure `staticwebapp.config.json` with Azure SWA built-in auth
+- Set provider to Microsoft
+- Add email allowlist: `tom87moore@gmail.com`, `laura_j_bates87@hotmail.com`
+- Configure route protection for all routes (frontend + API)
+- No frontend code changes required — auth handled at Azure level
 
 ### Phase 5: Deploy
 - Create Azure Static Web App resource
 - Connect GitHub repo for CI/CD (auto-generated workflow)
 - Provision Cosmos DB in Azure (serverless mode)
-- Configure Google OAuth client ID in Google Cloud Console
-  - Add authorized JavaScript origins: production SWA URL
-  - Add authorized redirect URIs: production SWA URL
-- Set Azure app settings: `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE`, `GOOGLE_CLIENT_ID`, `ALLOWED_EMAILS`
-- Update GitHub workflow to inject `VITE_GOOGLE_CLIENT_ID` and `BUILD_NUMBER` at build time
+- Set Azure app settings: `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE`
+- Update GitHub workflow to inject `BUILD_NUMBER` at build time
 - Add `api_build_command: "npm run build"` to workflow to compile TypeScript
 - Test end-to-end in production
+- Verify authentication and email allowlist work correctly
 
 ### Phase 7: Version Display (Added)
 - Create `VersionBadge` component showing version in top-right corner
@@ -169,11 +168,11 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 - GitHub Actions run number auto-increments on each deployment
 - Shows "vdev" in local development
 
-### Phase 8: Email Restriction (Added)
-- Update `authMiddleware.ts` to extract and validate email from Google token
-- Implement allowlist check (configurable via `ALLOWED_EMAILS` env var)
-- Add frontend validation in Login component (test API call after sign-in)
-- Display error message for unauthorized emails
+### Phase 8: Word Validation (Added)
+- Prevent spaces in word input fields
+- Validate no duplicate words in a single entry
+- Add frontend validation in WordInput and DayEntry components
+- Add backend validation in createEntry function
 
 ### Phase 6: Grafana
 - Deploy Grafana container on Azure Container Instance
@@ -195,33 +194,31 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 - **Local dev**: Run `swa start` to test frontend + functions together locally
 - **API testing**: Use REST client or curl to test each endpoint
 - **Auth testing**:
-  - Verify Google Sign-In button appears (not dev mode)
+  - Access the app → should redirect to Microsoft login
   - Sign in with authorized email → should reach profile selection
-  - Sign in with unauthorized email → should see error message
-  - API calls include valid token in Authorization header
-- **Email restriction**: Attempt sign-in with non-allowed email and verify rejection
+  - Sign in with unauthorized email → should see 403 Forbidden
+  - Verify API endpoints also require authentication
+- **Email restriction**: Attempt access with non-allowed email and verify 403 rejection
 - **Version display**: Check top-right corner shows `v{number}` matching GitHub Actions run number
 - **One-entry-per-day**: Attempt duplicate submissions and verify they're blocked/updated
+- **Word validation**: Try entering words with spaces and duplicate words, verify rejection
 - **Autocomplete**: Enter words over multiple days and verify suggestions populate
 - **Deployment**: Verify the app works at the Azure Static Web Apps URL
 - **Grafana**: Verify dashboards display data correctly after entries exist
 
 ## Known Issues & Solutions
 
-### Google Sign-In 400 Bad Request
-**Symptom**: Google button fails to load with 400 error
-**Cause**: Missing authorized JavaScript origins in Google Cloud Console
-**Fix**: Add `https://nice-meadow-0cb162303.1.azurestaticapps.net` to authorized JavaScript origins and redirect URIs
+### Missing Entry Shows 404 in Network Tab (Fixed)
+**Symptom**: When a profile hasn't submitted today, the API shows 404 in browser Network tab
+**Cause**: API returned 404 for missing entries
+**Fix**: Changed API to return 200 with `{ entry: null }` for missing entries
 
-### API returns 401 "Invalid token"
-**Symptom**: All API calls fail with 401 after sign-in
-**Possible causes**:
-1. `VITE_GOOGLE_CLIENT_ID` not set in build → client shows dev mode instead of real Google button
-2. Google OAuth config missing authorized origins → token is invalid
-3. `GOOGLE_CLIENT_ID` mismatch between client and server → audience validation fails
-**Fix**: Verify all three are correctly configured
+### Missing Favicon (Fixed)
+**Symptom**: Browser requests `/favicon.ico` and gets 404 from Azure
+**Cause**: No favicon file provided
+**Fix**: Added `client/public/favicon.svg` with simple DT logo
 
-### SWA 401 before reaching API functions
-**Symptom**: API returns 401 before auth middleware runs
-**Cause**: `staticwebapp.config.json` has route guards requiring SWA's built-in auth
-**Fix**: Remove route guards from config — auth is handled in functions middleware
+### 403 Forbidden After Login
+**Symptom**: User can log in but gets 403 Forbidden
+**Cause**: User's email is not in the allowlist in `staticwebapp.config.json`
+**Fix**: Add the user's email to the `allowedRoles` section
