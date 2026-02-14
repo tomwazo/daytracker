@@ -1,6 +1,7 @@
 {
   "name": "api",
   "private": true,
+  "main": "dist/functions/*.js",
   "scripts": {
     "dev": "func start",
     "build": "tsc -b",
