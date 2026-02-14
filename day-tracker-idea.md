@@ -24,15 +24,23 @@ A web application for daily self-reflection, allowing users to score their day a
 - **Autocomplete suggestions** drawn from the user's own previously entered words
 - Suggestions build up organically over time, creating a personal vocabulary
 
+### Authentication
+
+- **Azure Static Web Apps built-in authentication** using Microsoft as the provider
+- Access restricted to **two allowed email addresses**:
+  - `tom87moore@gmail.com` (Microsoft account)
+  - `laura_j_bates87@hotmail.com` (Microsoft account)
+- Unauthorized users are blocked at the Azure level before reaching the app
+- Authentication protects both the frontend UI and API endpoints
+
 ### Multi-User Support
 
-- The app loads directly to a **2x2 grid of buttons**, one per family member
+- After authentication, the app loads to a **2x2 grid of buttons**, one per family member
 - Four fixed profiles: **Daddy**, **Mommy**, **Tabitha**, **Imogen**
 - Below the 2x2 grid, a **fifth button** for **viewing the Grafana dashboards**
 - Selecting a profile takes you to that user's daily entry screen
 - Selecting the dashboard button takes you to the Grafana visualizations
 - Each profile has its own separate data and word history
-- No authentication required — trust-based access for this private family app
 
 ### Grafana Dashboards
 
