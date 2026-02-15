@@ -68,3 +68,4 @@ app.http("getAnalyticsEntries", {
   route: "analytics/entries",
   handler: getAnalyticsEntries,
 });
+// Force rebuild
