@@ -19,6 +19,7 @@ function getScoreColor(score: number): string {
 }
 
 export default function DayEntry({ profileId, onBack }: DayEntryProps) {
+  const [selectedDate, setSelectedDate] = useState(getToday());
   const [score, setScore] = useState(5);
   const [words, setWords] = useState(["", "", ""]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
@@ -27,7 +28,6 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const today = getToday();
   const profileLabel = profileId.charAt(0).toUpperCase() + profileId.slice(1);
 
   useEffect(() => {
@@ -35,7 +35,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
       setLoading(true);
       try {
         const [existing, pastWords] = await Promise.all([
-          fetchEntry(profileId, today),
+          fetchEntry(profileId, selectedDate),
           fetchWords(profileId),
         ]);
         setSuggestions(pastWords);
@@ -43,6 +43,10 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
           setScore(existing.score);
           setWords(existing.words);
           setSubmitted(true);
+        } else {
+          setScore(5);
+          setWords(["", "", ""]);
+          setSubmitted(false);
         }
       } catch {
         // Ignore fetch errors for now — user can still submit
@@ -51,7 +55,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
       }
     }
     load();
-  }, [profileId, today]);
+  }, [profileId, selectedDate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -78,7 +82,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
 
     setSubmitting(true);
     try {
-      await submitEntry({ profileId, date: today, score, words: trimmed });
+      await submitEntry({ profileId, date: selectedDate, score, words: trimmed });
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
@@ -106,7 +110,13 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
           &larr; Back
         </button>
         <h2>{profileLabel}'s Day</h2>
-        <span className="day-entry-date">{today}</span>
+        <input
+              type="date"
+              className="day-entry-date-picker"
+              value={selectedDate}
+              max={getToday()}
+              onChange={(e) => setSelectedDate(e.target.value)}
+            />
       </div>
 
       {submitted ? (

@@ -191,6 +191,21 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - Add "View Insights" button in ProfileSelect
 - Add navigation to Dashboard page in App.tsx
 
+### Phase 9: Date Picker for Entry Submission (Issue #24)
+
+**Goal:** Allow users to submit entries for past dates they may have missed.
+
+**Frontend changes only (`client/src/components/DayEntry.tsx` and `DayEntry.css`):**
+
+- Add `selectedDate` state (defaults to `getToday()`)
+- Add `<input type="date">` with `max={getToday()}` to prevent future dates
+- Update `useEffect` to re-fetch existing entry when `selectedDate` changes
+- If an entry exists for the selected date, show the read-only confirmation view
+- If no entry exists, reset the form for new submission
+- Pass `selectedDate` (instead of hardcoded today) to `submitEntry`
+
+**No backend changes required** — API already accepts any valid `YYYY-MM-DD` date.
+
 ## Deployment & Git Workflow
 
 - **Repo**: `tomwazo/daytracker` on GitHub

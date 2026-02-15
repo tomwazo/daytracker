@@ -19,9 +19,14 @@
   font-size: 1.3rem;
 }
 
-.day-entry-date {
+.day-entry-date-picker {
   font-size: 0.9rem;
   color: var(--color-text-muted);
+  border: 1px solid var(--color-text-muted);
+  border-radius: var(--radius);
+  padding: 0.25rem 0.5rem;
+  background: var(--color-surface);
+  font-family: inherit;
 }
 
 .back-button {
