@@ -153,6 +153,42 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 ### Phase 6: Interactive Dashboard
 
+⚠️ **STATUS: BLOCKED - JWT Authentication Issue**
+
+**Current Problem:**
+The analytics dashboard is fully implemented (code complete, deployed) but **NOT FUNCTIONAL** due to a JWT token verification issue in Azure Functions. All analytics endpoints return `401 Unauthorized` with error: `{"error":"Invalid token","debug":"invalid signature"}`.
+
+**What's Working:**
+- ✅ Dashboard UI components fully built (Dashboard, ScoreChart, WordFrequencyChart, StatsCards)
+- ✅ Analytics API endpoints deployed (`/api/analytics/entries`, `/api/analytics/word-frequency`, `/api/analytics/stats`)
+- ✅ Login creates JWT tokens successfully
+- ✅ JWT_SECRET configured in Azure and accessible to all functions
+- ✅ Tokens verify successfully immediately after creation (within same function)
+
+**What's Broken:**
+- ❌ Analytics endpoints reject tokens with "invalid signature" even though they use the same JWT_SECRET
+- ❌ Verified via debug endpoints: all functions report identical JWT_SECRET (SHA-256 hash matches)
+- ❌ Even hardcoding JWT_SECRET in source code doesn't fix the issue
+- ❌ Suggests potential Azure Functions module caching or instance isolation bug
+
+**Debugging Attempts** (Feb 15, 2026):
+1. Verified JWT_SECRET environment variable across all endpoints (identical SHA-256 hashes)
+2. Added immediate token verification in login endpoint (works - proves tokens are valid)
+3. Hardcoded JWT_SECRET directly in `authMiddleware.ts` and `login.ts` (still fails)
+4. Forced rebuild of all analytics endpoints
+5. Tested with completely fresh tokens and cleared browser storage
+
+**Next Steps** (for future resolution):
+- Consider switching to Azure AD authentication or Azure Static Web Apps built-in auth
+- Try deploying to a completely fresh Azure Static Web App instance
+- Investigate Azure Functions cold start behavior and module caching
+- Possibly move to API Key authentication instead of JWT
+
+**Temporary Workaround:**
+None available. Dashboard is inaccessible until authentication issue is resolved.
+
+---
+
 Build an integrated analytics dashboard directly in the app using Recharts.
 
 #### 6.1 — Add Analytics API Endpoints
