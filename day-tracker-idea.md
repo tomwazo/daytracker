@@ -11,10 +11,13 @@ A web application for daily self-reflection, allowing users to score their day a
 
 ### Daily Entry
 
-- Displays the **current date** at the top of the entry screen
+- A **date picker** is displayed at the top of the entry screen, defaulting to **today's date**
+- The user can select a **past date** to backfill missed entries, but **future dates are not allowed**
+- If the selected date already has an entry, it is shown in a **read-only view**
+- If no entry exists for the selected date, the submission form is shown
 - Score your day on a scale of **1 to 10**
 - Enter **three words** to describe the day
-- **One entry per user per day** — if a submission already exists for today, the form is disabled and a message is displayed informing the user that they have already submitted for today
+- **One entry per user per day** — only one entry can exist per profile per date
 
 ### Word Input
 
