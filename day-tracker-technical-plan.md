@@ -200,6 +200,27 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - **Workflow**: Push to `develop`, merge to `main` via PR to deploy
 - **Live URL**: `https://nice-meadow-0cb162303.1.azurestaticapps.net`
 
+### Release Tags
+
+Known good versions on `main` are tagged for easy rollback:
+
+| Tag | Description |
+|-----|-------------|
+| `v1.0` | Auth removed, direct profile selection, dashboard working |
+
+**Tagging a new release:**
+```bash
+git tag -a v1.x -m "Description of known good state"
+git push origin v1.x
+```
+
+**Rolling back to a tagged version:**
+```bash
+git checkout main
+git reset --hard v1.x
+git push --force-with-lease origin main
+```
+
 ## Verification
 
 - **Local dev**: Run `swa start` to test frontend + functions together locally
