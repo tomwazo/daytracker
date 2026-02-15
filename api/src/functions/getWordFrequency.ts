@@ -79,3 +79,4 @@ app.http("getWordFrequency", {
   route: "analytics/word-frequency",
   handler: getWordFrequency,
 });
+// Force rebuild
