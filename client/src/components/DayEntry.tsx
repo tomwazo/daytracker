@@ -116,9 +116,6 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
           </p>
           <p className="done-words">{words.join(" \u2022 ")}</p>
           <p className="done-message">Entry saved!</p>
-          <button className="back-button" onClick={onBack}>
-            &larr; Back to profiles
-          </button>
         </div>
       ) : (
         <form className="day-entry-form" onSubmit={handleSubmit}>
