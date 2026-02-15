@@ -47,6 +47,10 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 - Full production build succeeds (`npm run build`)
 - All dependencies installed (131 packages, 0 vulnerabilities)
 
+### Release Tags
+
+- `v1.0` — Auth removed, direct profile selection, dashboard working (tagged on `main`)
+
 ## Remaining
 
 ### Phase 5: Deploy
