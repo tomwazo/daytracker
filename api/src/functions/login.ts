@@ -59,7 +59,8 @@ async function login(
     }
 
     // Generate JWT token
-    const jwtSecret = process.env.JWT_SECRET || "dev-secret-change-in-production";
+    // TEMP: Hardcode to bypass env var issues
+    const jwtSecret = "36973bfadee0e864d01a7ea6dc9832dbc39ce062c91be4f837cbd1ab897302e7b040e226ac871eed83b4a55e3a0b58607cc293df726572b388c1d96e3ed7d333";
     const expiresIn = rememberMe ? "90d" : "7d";
 
     const token = jwt.sign(
