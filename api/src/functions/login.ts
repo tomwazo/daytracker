@@ -68,12 +68,22 @@ async function login(
       { expiresIn }
     );
 
+    // TEMP: Immediately verify the token we just created
+    let immediateVerifyWorks = false;
+    try {
+      jwt.verify(token, jwtSecret);
+      immediateVerifyWorks = true;
+    } catch (e) {
+      console.error("CRITICAL: Token verification failed immediately after creation!", e);
+    }
+
     // Debug info to help troubleshoot
     const secretHash = crypto.createHash('sha256').update(jwtSecret).digest('hex');
     console.log("Login - JWT Secret being used:", {
       secretFirst10: jwtSecret.substring(0, 10),
       secretLength: jwtSecret.length,
       secretHash,
+      immediateVerifyWorks,
       username: user.username,
     });
 
@@ -86,6 +96,7 @@ async function login(
         debug_secretUsed: jwtSecret.substring(0, 10), // TEMP: for debugging
         debug_secretLength: jwtSecret.length, // TEMP: for debugging
         debug_secretHash: secretHash, // TEMP: full secret hash for comparison
+        debug_immediateVerifyWorks: immediateVerifyWorks, // TEMP: does token work right after creation?
       },
     };
   } catch (error) {
