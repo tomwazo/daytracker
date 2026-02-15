@@ -67,12 +67,21 @@ async function login(
       { expiresIn }
     );
 
+    // Debug info to help troubleshoot
+    console.log("Login - JWT Secret being used:", {
+      secretFirst10: jwtSecret.substring(0, 10),
+      secretLength: jwtSecret.length,
+      username: user.username,
+    });
+
     return {
       status: 200,
       jsonBody: {
         token,
         username: user.username,
         expiresIn: rememberMe ? 90 * 24 * 60 * 60 : 7 * 24 * 60 * 60, // seconds
+        debug_secretUsed: jwtSecret.substring(0, 10), // TEMP: for debugging
+        debug_secretLength: jwtSecret.length, // TEMP: for debugging
       },
     };
   } catch (error) {
