@@ -64,34 +64,25 @@ export default function Dashboard({ onBack }: DashboardProps) {
       setError(null);
 
       try {
-        const token =
-          localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
-        const headers = {
-          Authorization: `Bearer ${token}`,
-        };
-
         const profileParam = profileFilter === "all" ? "" : `&profileId=${profileFilter}`;
 
         // Fetch entries
         const entriesRes = await fetch(
-          `/api/analytics/entries?startDate=${startDate}&endDate=${endDate}${profileParam}`,
-          { headers }
+          `/api/analytics/entries?startDate=${startDate}&endDate=${endDate}${profileParam}`
         );
         if (!entriesRes.ok) throw new Error("Failed to fetch entries");
         const entriesData = await entriesRes.json();
 
         // Fetch word frequency
         const wordFreqRes = await fetch(
-          `/api/analytics/word-frequency?startDate=${startDate}&endDate=${endDate}${profileParam}`,
-          { headers }
+          `/api/analytics/word-frequency?startDate=${startDate}&endDate=${endDate}${profileParam}`
         );
         if (!wordFreqRes.ok) throw new Error("Failed to fetch word frequency");
         const wordFreqData = await wordFreqRes.json();
 
         // Fetch stats
         const statsRes = await fetch(
-          `/api/analytics/stats?startDate=${startDate}&endDate=${endDate}`,
-          { headers }
+          `/api/analytics/stats?startDate=${startDate}&endDate=${endDate}`
         );
         if (!statsRes.ok) throw new Error("Failed to fetch stats");
         const statsData = await statsRes.json();

@@ -2,9 +2,7 @@ import "./ProfileSelect.css";
 
 interface ProfileSelectProps {
   onSelect: (profileId: string) => void;
-  onLogout: () => void;
   onViewInsights: () => void;
-  username: string | null;
 }
 
 const profiles = [
@@ -14,17 +12,11 @@ const profiles = [
   { id: "imogen", label: "Imogen", emoji: "\u{1F476}" },
 ];
 
-export default function ProfileSelect({ onSelect, onLogout, onViewInsights, username }: ProfileSelectProps) {
+export default function ProfileSelect({ onSelect, onViewInsights }: ProfileSelectProps) {
   return (
     <div className="profile-select">
       <div className="profile-header">
         <h2 className="profile-title">Who are you?</h2>
-        <div className="profile-user-info">
-          <span className="profile-username">Logged in as: {username}</span>
-          <button onClick={onLogout} className="logout-button">
-            Logout
-          </button>
-        </div>
       </div>
       <div className="profile-grid">
         {profiles.map((p) => (
@@ -42,7 +34,7 @@ export default function ProfileSelect({ onSelect, onLogout, onViewInsights, user
         onClick={onViewInsights}
         className="dashboard-link"
       >
-        📊 View Insights
+        View Insights
       </button>
     </div>
   );

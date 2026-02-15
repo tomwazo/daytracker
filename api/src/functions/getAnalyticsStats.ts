@@ -5,18 +5,11 @@ import {
   InvocationContext,
 } from "@azure/functions";
 import { getContainer } from "../cosmosClient.js";
-import { validateToken } from "../authMiddleware.js";
 
 async function getAnalyticsStats(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  // Validate auth token
-  const authError = validateToken(request);
-  if (authError) {
-    return authError;
-  }
-
   const startDate = request.query.get("startDate");
   const endDate = request.query.get("endDate");
 
@@ -87,4 +80,3 @@ app.http("getAnalyticsStats", {
   route: "analytics/stats",
   handler: getAnalyticsStats,
 });
-// Force rebuild

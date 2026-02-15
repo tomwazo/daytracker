@@ -29,21 +29,17 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 ### Phase 3: Frontend Core
 
-- **Login** — Google Sign-In button, with dev-mode fallback when no client ID is configured
-- **ProfileSelect** — 2x2 grid of family member cards + link to Grafana dashboards
+- **ProfileSelect** — 2x2 grid of family member cards + "View Insights" button
 - **DayEntry** — Score slider with color-coded value (red/amber/green), 3 word inputs, loads existing entry on mount, shows confirmation after submission
 - **WordInput** — Text input with dropdown autocomplete filtered from past words
-- API client module (`client/src/api.ts`) with auth headers on all requests
+- API client module (`client/src/api.ts`)
 - Clean CSS with design tokens (CSS variables for colors, radius, shadows)
 
 ### Phase 4: Authentication
 
-- **Status: Needs re-implementation** (switching from Azure AD to username/password)
-- Simple username/password login (usernames: `tom` and `laura`)
-- JWT-based session management
-- "Remember me" option for persistent login
-- Passwords stored as bcrypt hashes in API code
-- Token validation middleware on all protected endpoints
+- **Removed** — authentication was stripped out in favour of direct profile selection
+- The app opens straight to the profile picker with no login required
+- API endpoints are open (no token validation)
 
 ### Build Verification
 
@@ -108,43 +104,15 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
    | `COSMOS_ENDPOINT` | The URI copied from Cosmos DB Keys |
    | `COSMOS_KEY` | The primary key copied from Cosmos DB Keys |
    | `COSMOS_DATABASE` | `daytracker` |
-   | `GOOGLE_CLIENT_ID` | Your Google OAuth client ID (see step 5.5) |
 
 3. Click **Save**
 
-#### 5.5 — Set Up Google Sign-In
-
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/)
-2. Create a new project (e.g. `Day Tracker`)
-3. Go to **APIs & Services** → **OAuth consent screen**
-   - Choose **External** user type
-   - Fill in the app name, support email, and developer email
-   - No scopes needed — click through to finish
-4. Go to **APIs & Services** → **Credentials** → **Create Credentials** → **OAuth 2.0 Client ID**
-   - **Application type**: Web application
-   - **Name**: `Day Tracker Web`
-   - **Authorized JavaScript origins**: add both:
-     - `http://localhost:5173` (for local dev)
-     - `https://<your-app-name>.azurestaticapps.net` (your SWA URL, found in the Azure Portal overview)
-5. Copy the **Client ID** (looks like `xxxx.apps.googleusercontent.com`)
-6. Add it to your Azure Static Web App application settings as `GOOGLE_CLIENT_ID` (done in step 5.4)
-7. For local development, create a `.env` file in `client/`:
-   ```
-   VITE_GOOGLE_CLIENT_ID=xxxx.apps.googleusercontent.com
-   ```
-8. For production builds, add `VITE_GOOGLE_CLIENT_ID` as an environment variable in your GitHub Actions workflow file (`.github/workflows/azure-static-web-apps-*.yml`):
-   ```yaml
-   env:
-     VITE_GOOGLE_CLIENT_ID: xxxx.apps.googleusercontent.com
-   ```
-
-#### 5.6 — Test End-to-End
+#### 5.5 — Test End-to-End
 
 1. Push your changes to GitHub — the GitHub Action will auto-deploy
 2. Visit your SWA URL (e.g. `https://<your-app-name>.azurestaticapps.net`)
 3. Verify:
-   - [ ] Google Sign-In button appears and works
-   - [ ] Profile selection screen shows after login
+   - [ ] Profile selection screen shows immediately on load
    - [ ] Submitting a day entry succeeds (check Cosmos DB Data Explorer to confirm)
    - [ ] Returning to the same profile on the same day loads the existing entry
    - [ ] Submitting again upserts (updates) the same entry
@@ -153,117 +121,10 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 ### Phase 6: Interactive Dashboard
 
-⚠️ **STATUS: BLOCKED - JWT Authentication Issue**
-
-**Current Problem:**
-The analytics dashboard is fully implemented (code complete, deployed) but **NOT FUNCTIONAL** due to a JWT token verification issue in Azure Functions. All analytics endpoints return `401 Unauthorized` with error: `{"error":"Invalid token","debug":"invalid signature"}`.
-
-**What's Working:**
 - ✅ Dashboard UI components fully built (Dashboard, ScoreChart, WordFrequencyChart, StatsCards)
 - ✅ Analytics API endpoints deployed (`/api/analytics/entries`, `/api/analytics/word-frequency`, `/api/analytics/stats`)
-- ✅ Login creates JWT tokens successfully
-- ✅ JWT_SECRET configured in Azure and accessible to all functions
-- ✅ Tokens verify successfully immediately after creation (within same function)
-
-**What's Broken:**
-- ❌ Analytics endpoints reject tokens with "invalid signature" even though they use the same JWT_SECRET
-- ❌ Verified via debug endpoints: all functions report identical JWT_SECRET (SHA-256 hash matches)
-- ❌ Even hardcoding JWT_SECRET in source code doesn't fix the issue
-- ❌ Suggests potential Azure Functions module caching or instance isolation bug
-
-**Debugging Attempts** (Feb 15, 2026):
-1. Verified JWT_SECRET environment variable across all endpoints (identical SHA-256 hashes)
-2. Added immediate token verification in login endpoint (works - proves tokens are valid)
-3. Hardcoded JWT_SECRET directly in `authMiddleware.ts` and `login.ts` (still fails)
-4. Forced rebuild of all analytics endpoints
-5. Tested with completely fresh tokens and cleared browser storage
-
-**Next Steps** (for future resolution):
-- Consider switching to Azure AD authentication or Azure Static Web Apps built-in auth
-- Try deploying to a completely fresh Azure Static Web App instance
-- Investigate Azure Functions cold start behavior and module caching
-- Possibly move to API Key authentication instead of JWT
-
-**Temporary Workaround:**
-None available. Dashboard is inaccessible until authentication issue is resolved.
-
----
-
-Build an integrated analytics dashboard directly in the app using Recharts.
-
-#### 6.1 — Add Analytics API Endpoints
-
-Create three new Azure Functions for aggregated data:
-
-1. **GET `/api/analytics/entries`**
-   - Query parameters: `startDate`, `endDate`, `profileId` (optional)
-   - Returns all entries in date range, optionally filtered by profile
-   - Used for: score chart, entries table
-
-2. **GET `/api/analytics/word-frequency`**
-   - Query parameters: `startDate`, `endDate`, `profileId` (optional)
-   - Returns word frequency counts for the period
-   - Used for: word frequency bar chart
-
-3. **GET `/api/analytics/stats`**
-   - Query parameters: `startDate`, `endDate`
-   - Returns summary statistics (average score per profile)
-   - Used for: stats cards display
-
-All endpoints require authentication (JWT token).
-
-#### 6.2 — Install Dependencies
-
-```bash
-npm install recharts --workspace=client
-npm install date-fns --workspace=client  # for date manipulation
-```
-
-#### 6.3 — Build Dashboard Components
-
-Create new components in `client/src/components/`:
-
-1. **Dashboard.tsx** — Main dashboard page
-   - Date range selector (Last 7/30/90 days, All time, Custom)
-   - Profile filter dropdown
-   - Layout with charts and stats
-
-2. **ScoreChart.tsx** — Line chart component
-   - Uses Recharts `LineChart`
-   - One line per family member
-   - Y-axis range: 1-10
-
-3. **WordFrequencyChart.tsx** — Bar chart component
-   - Uses Recharts `BarChart`
-   - Top 20 most-used words
-   - Horizontal bars for readability
-
-4. **StatsCards.tsx** — Summary statistics
-   - Average score per profile
-   - Total entries in period
-   - Card-based layout
-
-5. **EntriesTable.tsx** — Recent entries table
-   - Paginated list of entries
-   - Columns: Date, Profile, Score, Words
-   - Click to view details
-
-#### 6.4 — Add Navigation
-
-1. Update `ProfileSelect.tsx`:
-   - Change "View Dashboards" button to "View Insights"
-   - Click navigates to `/dashboard` route
-
-2. Update `App.tsx`:
-   - Add `dashboard` screen to state
-   - Add Dashboard component to rendering logic
-
-#### 6.5 — Style the Dashboard
-
-- Use existing CSS variables for consistency
-- Responsive layout (mobile-friendly)
-- Loading states while fetching data
-- Empty states when no data in range
+- ✅ JWT authentication blocker resolved by removing auth entirely
+- ✅ "View Insights" button on profile selection screen
 
 ## File Structure
 
@@ -272,16 +133,20 @@ mindfulness/
 ├── client/                         # React frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── Login.tsx           # Google Sign-In
-│   │   │   ├── Login.css
 │   │   │   ├── ProfileSelect.tsx   # 2x2 profile grid
 │   │   │   ├── ProfileSelect.css
 │   │   │   ├── DayEntry.tsx        # Score + 3 words form
 │   │   │   ├── DayEntry.css
 │   │   │   ├── WordInput.tsx       # Autocomplete input
-│   │   │   └── WordInput.css
-│   │   ├── api.ts                  # API client with auth
-│   │   ├── auth.ts                 # Google token management
+│   │   │   ├── WordInput.css
+│   │   │   ├── Dashboard.tsx       # Analytics dashboard
+│   │   │   ├── Dashboard.css
+│   │   │   ├── ScoreChart.tsx      # Score line chart
+│   │   │   ├── WordFrequencyChart.tsx # Word frequency bar chart
+│   │   │   ├── StatsCards.tsx      # Summary stats
+│   │   │   ├── VersionBadge.tsx    # Version display
+│   │   │   └── VersionBadge.css
+│   │   ├── api.ts                  # API client
 │   │   ├── App.tsx                 # Screen router
 │   │   ├── main.tsx                # Entry point
 │   │   ├── index.css               # Global styles
@@ -295,9 +160,11 @@ mindfulness/
 │   │   ├── functions/
 │   │   │   ├── createEntry.ts      # POST /api/entry
 │   │   │   ├── getEntry.ts         # GET /api/entry/:profileId/:date
-│   │   │   └── getWords.ts         # GET /api/words/:profileId
-│   │   ├── cosmosClient.ts         # Cosmos DB connection
-│   │   └── authMiddleware.ts       # Google token validation
+│   │   │   ├── getWords.ts         # GET /api/words/:profileId
+│   │   │   ├── getAnalyticsEntries.ts  # GET /api/analytics/entries
+│   │   │   ├── getAnalyticsStats.ts    # GET /api/analytics/stats
+│   │   │   └── getWordFrequency.ts     # GET /api/analytics/word-frequency
+│   │   └── cosmosClient.ts         # Cosmos DB connection
 │   ├── host.json
 │   ├── local.settings.json         # Local env vars (git-ignored)
 │   ├── package.json

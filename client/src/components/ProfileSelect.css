@@ -14,33 +14,6 @@
   color: var(--color-text);
 }
 
-.profile-user-info {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-top: 0.5rem;
-}
-
-.profile-username {
-  font-size: 0.85rem;
-  color: #666;
-}
-
-.logout-button {
-  padding: 0.35rem 0.75rem;
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-
-.logout-button:hover {
-  background: #e0e0e0;
-}
-
 .profile-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
