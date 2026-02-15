@@ -1,7 +1,10 @@
 {
   "name": "mindfulness",
   "private": true,
-  "workspaces": ["client", "api"],
+  "workspaces": [
+    "client",
+    "api"
+  ],
   "scripts": {
     "dev": "swa start http://localhost:5173 --api-location api",
     "dev:client": "npm run dev --workspace=client",
@@ -9,5 +12,8 @@
     "build": "npm run build --workspace=client && npm run build --workspace=api",
     "build:client": "npm run build --workspace=client",
     "build:api": "npm run build --workspace=api"
+  },
+  "dependencies": {
+    "@azure/cosmos": "^4.9.1"
   }
 }
