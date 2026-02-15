@@ -18,6 +18,14 @@ export function validateToken(request: HttpRequest): HttpResponseInit | null {
     jwt.verify(token, jwtSecret) as { username: string };
     return null; // Auth successful
   } catch (error) {
+    console.error("JWT verification failed:", {
+      errorName: error instanceof Error ? error.name : "Unknown",
+      errorMessage: error instanceof Error ? error.message : "Unknown error",
+      tokenFirst10: token.substring(0, 10),
+      secretFirst10: jwtSecret.substring(0, 10),
+      secretLength: jwtSecret.length,
+    });
+
     if (error instanceof jwt.TokenExpiredError) {
       return {
         status: 401,
@@ -26,7 +34,10 @@ export function validateToken(request: HttpRequest): HttpResponseInit | null {
     }
     return {
       status: 401,
-      jsonBody: { error: "Invalid token" },
+      jsonBody: {
+        error: "Invalid token",
+        debug: error instanceof Error ? error.message : "Unknown error"
+      },
     };
   }
 }
