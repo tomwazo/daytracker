@@ -24,6 +24,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const today = getToday();
@@ -75,11 +76,14 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
       return;
     }
 
+    setSubmitting(true);
     try {
       await submitEntry({ profileId, date: today, score, words: trimmed });
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
+    } finally {
+      setSubmitting(false);
     }
   }
 
@@ -154,8 +158,8 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
 
           {error && <p className="entry-error">{error}</p>}
 
-          <button type="submit" className="submit-button">
-            Save Entry
+          <button type="submit" className="submit-button" disabled={submitting}>
+            {submitting ? "Saving..." : "Save Entry"}
           </button>
         </form>
       )}
