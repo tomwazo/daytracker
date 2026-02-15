@@ -24,48 +24,23 @@ A web application for daily self-reflection, allowing users to score their day a
 - **Autocomplete suggestions** drawn from the user's own previously entered words
 - Suggestions build up organically over time, creating a personal vocabulary
 
-### Authentication
-
-- **Simple username/password authentication**
-- Two user accounts:
-  - Username: `tom`
-  - Username: `laura`
-- Passwords stored as bcrypt hashes in the API code (not in database)
-- Session-based authentication using JWT tokens
-- **"Remember me" option** to stay logged in across browser sessions
-- Login form shown on first visit
-- Authentication protects both the frontend UI and API endpoints
-
 ### Multi-User Support
 
-- After authentication, the app loads to a **2x2 grid of buttons**, one per family member
+- The app opens directly to a **2x2 grid of buttons**, one per family member (no login required)
 - Four fixed profiles: **Daddy**, **Mommy**, **Tabitha**, **Imogen**
-- Below the 2x2 grid, a **"View Insights" button** for accessing the analytics dashboard
+- Below the 2x2 grid, a **fifth button** for **viewing the Grafana dashboards**
 - Selecting a profile takes you to that user's daily entry screen
-- Selecting the insights button takes you to the interactive dashboard
+- Selecting the dashboard button takes you to the Grafana visualizations
 - Each profile has its own separate data and word history
 
-### Interactive Dashboard
+### Grafana Dashboards
 
-A built-in analytics page with **real-time filtering controls**:
+Four visualizations for exploring your data:
 
-**Interactive Controls:**
-- **Date range filters**: "Last 7 days", "Last 30 days", "Last 90 days", "All time"
-- **Custom date picker**: Select specific start and end dates
-- **Profile filter**: View all family members or filter to one person
-- Charts update instantly when filters change
-
-**Visualizations:**
-- **Score over time** — Line chart showing daily scores for each family member
-- **Word frequency** — Bar chart of most-used words in the selected period
-- **Average scores** — Summary statistics per person for the time period
-- **Recent entries** — Paginated table of entries in the selected date range
-
-**Technology:**
-- Built with Recharts (React charting library)
-- No separate services required (Grafana not needed)
-- Works seamlessly on mobile and desktop
-- Uses existing authentication
+- **Score over time** — line chart tracking your daily score
+- **Word frequency** — bar chart showing which words you use most often
+- **Words over time** — timeline showing which words appeared on which days
+- **Word cloud** — visual display where more frequent words appear larger
 
 ## Hosting
 

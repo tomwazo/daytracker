@@ -11,8 +11,7 @@ Building the Day Tracker app described in `day-tracker-idea.md`: a family mindfu
 | Frontend | React + TypeScript |
 | Backend | Azure Functions (Node.js/TypeScript) |
 | Database | Azure Cosmos DB (NoSQL, free tier) |
-| Auth/SSO | Azure Static Web Apps Built-in Auth (Microsoft provider) |
-| Dashboards | Grafana (self-hosted on Azure Container Instance) |
+| Auth | None (open access, profile-based identity) |
 | Hosting | Azure Static Web Apps (free tier, includes Azure Functions) |
 | CI/CD | GitHub → Azure Static Web Apps (built-in) |
 
@@ -48,6 +47,9 @@ mindfulness/
 │   │   │   ├── getEntry.ts         # GET entry for profile/date
 │   │   │   ├── createEntry.ts      # POST new daily entry
 │   │   │   └── getWords.ts         # GET word history for autocomplete
+│   │   ├── getAnalyticsEntries.ts   # GET analytics entries
+│   │   │   ├── getAnalyticsStats.ts    # GET analytics stats
+│   │   │   └── getWordFrequency.ts     # GET word frequency
 │   │   └── cosmosClient.ts         # Cosmos DB connection
 │   ├── host.json
 │   ├── local.settings.json         # Local env vars (gitignored)
@@ -86,49 +88,27 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 
 ## API Endpoints (Azure Functions)
 
-| Method | Route | Description | Auth Required |
-|--------|-------|-------------|---------------|
-| POST | `/api/login` | Authenticate user and return JWT token | No |
-| GET | `/api/entry/{profileId}/{date}` | Get entry for a profile on a date | Yes |
-| POST | `/api/entry` | Create a new daily entry | Yes |
-| GET | `/api/words/{profileId}` | Get all unique past words for autocomplete | Yes |
-| GET | `/api/analytics/entries?startDate={date}&endDate={date}&profileId={id}` | Get entries for date range, optionally filtered by profile | Yes |
-| GET | `/api/analytics/word-frequency?startDate={date}&endDate={date}&profileId={id}` | Get word frequency counts for date range | Yes |
-| GET | `/api/analytics/stats?startDate={date}&endDate={date}` | Get summary statistics (avg scores per profile) | Yes |
+| Method | Route | Description |
+|--------|-------|-------------|
+| GET | `/api/entry/{profileId}/{date}` | Get entry for a profile on a date |
+| POST | `/api/entry` | Create a new daily entry |
+| GET | `/api/words/{profileId}` | Get all unique past words for autocomplete |
+| GET | `/api/analytics/entries?startDate={date}&endDate={date}&profileId={id}` | Get entries for date range, optionally filtered by profile |
+| GET | `/api/analytics/word-frequency?startDate={date}&endDate={date}&profileId={id}` | Get word frequency counts for date range |
+| GET | `/api/analytics/stats?startDate={date}&endDate={date}` | Get summary statistics (avg scores per profile) |
 
-## Auth Flow
+## App Flow
 
-**Simple Username/Password Authentication** — custom JWT-based authentication:
+No authentication — the app opens directly to profile selection:
 
-1. User visits the app and sees a login form
-2. User enters username (`tom` or `laura`) and password
-3. Optionally checks "Remember me" to persist login
-4. Frontend sends credentials to `POST /api/login`
-5. API validates credentials against hardcoded bcrypt hashes
-6. If valid, API returns a JWT token (expires in 7 days, or 90 days if "remember me")
-7. Frontend stores token in localStorage (if remember me) or sessionStorage
-8. All subsequent API calls include token in `Authorization: Bearer <token>` header
-9. API middleware validates token on each request
-10. User sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
-11. Profile selection is trust-based within the authenticated family — no per-profile passwords
-
-**Key Points:**
-- Two hardcoded users: `tom` and `laura`
-- Passwords stored as bcrypt hashes in API code (never plain text)
-- JWT tokens for session management
-- "Remember me" extends token lifetime and uses localStorage
-- All API endpoints protected by token validation middleware
-
-**Security Notes:**
-- Passwords hashed with bcrypt (cost factor 10)
-- JWT signed with secret key (stored in Azure app settings)
-- Tokens expire after 7 days (or 90 days with remember me)
-- No password reset flow (family app, can update code to change passwords)
+1. User visits the app and sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
+2. Profile selection is trust-based within the family — no passwords
+3. Selecting a profile takes the user to their daily entry screen
+4. API endpoints are open (no token validation)
 
 **Environment Variables:**
 - `BUILD_NUMBER` (Client build): GitHub Actions run number for version badge
 - `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` (API): Cosmos DB connection
-- `JWT_SECRET` (API): Secret key for signing JWT tokens
 
 ## Interactive Dashboard
 
@@ -175,14 +155,9 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - Wire up API calls
 
 ### Phase 4: Authentication
-- Create `login` API function with hardcoded users (tom, laura)
-- Hash passwords using bcrypt
-- Generate JWT tokens with 7-day expiry (90-day for remember me)
-- Create auth middleware for token validation
-- Build login form component with username/password fields and "remember me" checkbox
-- Store token in localStorage (remember me) or sessionStorage
-- Add Authorization header to all API calls
-- Protect all API endpoints with auth middleware
+- **Removed** — authentication was stripped out in favour of direct profile selection
+- The app opens straight to the profile picker with no login required
+- API endpoints are open (no token validation)
 
 ### Phase 5: Deploy
 - Create Azure Static Web App resource
@@ -192,7 +167,7 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - Update GitHub workflow to inject `BUILD_NUMBER` at build time
 - Add `api_build_command: "npm run build"` to workflow to compile TypeScript
 - Test end-to-end in production
-- Verify authentication and email allowlist work correctly
+- Verify profile selection loads on first visit
 
 ### Phase 7: Version Display (Added)
 - Create `VersionBadge` component showing version in top-right corner
@@ -229,12 +204,7 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 
 - **Local dev**: Run `swa start` to test frontend + functions together locally
 - **API testing**: Use REST client or curl to test each endpoint
-- **Auth testing**:
-  - Access the app → should redirect to Microsoft login
-  - Sign in with authorized email → should reach profile selection
-  - Sign in with unauthorized email → should see 403 Forbidden
-  - Verify API endpoints also require authentication
-- **Email restriction**: Attempt access with non-allowed email and verify 403 rejection
+- **App flow**: Open the app → should go straight to profile selection
 - **Version display**: Check top-right corner shows `v{number}` matching GitHub Actions run number
 - **One-entry-per-day**: Attempt duplicate submissions and verify they're blocked/updated
 - **Word validation**: Try entering words with spaces and duplicate words, verify rejection
@@ -254,7 +224,3 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 **Cause**: No favicon file provided
 **Fix**: Added `client/public/favicon.svg` with simple DT logo
 
-### 403 Forbidden After Login
-**Symptom**: User can log in but gets 403 Forbidden
-**Cause**: User's email is not in the allowlist in `staticwebapp.config.json`
-**Fix**: Add the user's email to the `allowedRoles` section

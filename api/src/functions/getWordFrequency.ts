@@ -5,18 +5,11 @@ import {
   InvocationContext,
 } from "@azure/functions";
 import { getContainer } from "../cosmosClient.js";
-import { validateToken } from "../authMiddleware.js";
 
 async function getWordFrequency(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  // Validate auth token
-  const authError = validateToken(request);
-  if (authError) {
-    return authError;
-  }
-
   const startDate = request.query.get("startDate");
   const endDate = request.query.get("endDate");
   const profileId = request.query.get("profileId");
@@ -79,4 +72,3 @@ app.http("getWordFrequency", {
   route: "analytics/word-frequency",
   handler: getWordFrequency,
 });
-// Force rebuild
