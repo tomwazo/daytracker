@@ -130,6 +130,39 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 - ✅ JWT authentication blocker resolved by removing auth entirely
 - ✅ "View Insights" button on profile selection screen
 
+### Phase 7: Date Picker for Entry Submission (Issue #24)
+
+**Goal:** Allow users to submit entries for past dates they may have missed, rather than being limited to today only.
+
+**Changes — Frontend only (`client/src/components/DayEntry.tsx` and `DayEntry.css`):**
+
+1. **Add date state and date picker input**
+   - Replace the hardcoded `getToday()` date with a `useState` defaulting to today
+   - Add an `<input type="date">` to the entry page header
+   - Set `max` attribute to today's date to prevent future date selection
+
+2. **Re-fetch entry when date changes**
+   - Update the `useEffect` to trigger when the selected date changes
+   - If an entry exists for the selected date, display it in the existing read-only confirmation view
+   - If no entry exists, reset the form to allow a new submission
+
+3. **Use selected date on submit**
+   - Pass the selected date (instead of hardcoded today) to the `submitEntry` API call
+
+**No backend changes required** — the API already accepts any valid `YYYY-MM-DD` date and the existing `fetchEntry` endpoint supports fetching by arbitrary date.
+
+**Acceptance Criteria Mapping:**
+
+| Acceptance Criterion | Addressed By |
+|---|---|
+| The submit an entry page should contain a date picker | Change #1 — `<input type="date">` added to the page |
+| The value selected in this date picker will be used when the entry is submitted | Change #3 — selected date passed to `submitEntry` |
+| If the selected date already has an entry submitted for that profile, then we should show what was submitted | Change #2 — existing entry loaded and shown in read-only view |
+| The date picker should always default to today's date | Change #1 — `useState` initialised with `getToday()` |
+| The user should never be able to select a date in the future | Change #1 — `max` attribute set to today's date |
+
+---
+
 ## File Structure
 
 ```
