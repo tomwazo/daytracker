@@ -1,3 +1,15 @@
+/**
+ * DayEntry.css — Styles for the daily entry form component.
+ *
+ * Covers the entry card layout (max 420px wide), the header with back
+ * button and date picker, the score slider section, the word input section,
+ * the submit button, and the read-only "entry saved" confirmation view.
+ *
+ * Score colours use CSS variables (--color-score-low/mid/high) applied
+ * inline by the component based on the current score value.
+ */
+
+/* Card container for the entry form */
 .day-entry {
   width: 100%;
   max-width: 420px;
@@ -7,6 +19,7 @@
   box-shadow: var(--shadow);
 }
 
+/* Header row: back button, profile name, date picker */
 .day-entry-header {
   display: flex;
   align-items: center;
@@ -19,6 +32,7 @@
   font-size: 1.3rem;
 }
 
+/* Date picker input in the header */
 .day-entry-date-picker {
   font-size: 0.9rem;
   color: var(--color-text-muted);
@@ -29,6 +43,7 @@
   font-family: inherit;
 }
 
+/* Back button (overrides Dashboard.css styles on this page) */
 .back-button {
   background: none;
   border: none;
@@ -43,10 +58,12 @@
   text-decoration: underline;
 }
 
+/* === Score slider section === */
 .score-section {
   margin-bottom: 1.5rem;
 }
 
+/* Label with score value displayed on the right */
 .score-label {
   display: flex;
   justify-content: space-between;
@@ -55,17 +72,20 @@
   margin-bottom: 0.5rem;
 }
 
+/* Large coloured score number */
 .score-value {
   font-size: 1.5rem;
   font-weight: 700;
 }
 
+/* Range slider */
 .score-slider {
   width: 100%;
   accent-color: var(--color-primary);
   height: 8px;
 }
 
+/* Min/max labels below the slider */
 .score-range {
   display: flex;
   justify-content: space-between;
@@ -74,6 +94,7 @@
   margin-top: 0.25rem;
 }
 
+/* === Word input section === */
 .words-section {
   margin-bottom: 1.5rem;
 }
@@ -84,16 +105,19 @@
   margin-bottom: 0.75rem;
 }
 
+/* Spacing between individual word inputs */
 .words-section .word-input-wrapper {
   margin-bottom: 0.5rem;
 }
 
+/* Validation error message */
 .entry-error {
   color: var(--color-score-low);
   font-size: 0.9rem;
   margin-bottom: 0.75rem;
 }
 
+/* === Submit button === */
 .submit-button {
   width: 100%;
   padding: 0.75rem;
@@ -111,23 +135,27 @@
   background: var(--color-primary-hover);
 }
 
+/* === Read-only confirmation view (after entry is saved) === */
 .day-entry-done {
   text-align: center;
   padding: 1rem 0;
 }
 
+/* Large score display */
 .done-score {
   font-size: 3rem;
   font-weight: 700;
   margin-bottom: 0.5rem;
 }
 
+/* Words separated by bullet points */
 .done-words {
   font-size: 1.1rem;
   color: var(--color-text-muted);
   margin-bottom: 1rem;
 }
 
+/* "Entry saved!" success message */
 .done-message {
   color: var(--color-score-high);
   font-weight: 600;

@@ -1,18 +1,31 @@
+/**
+ * index.css — Global styles and CSS custom properties (design tokens).
+ *
+ * Defines the app-wide colour palette, border radius, and shadow values
+ * as CSS variables. These tokens are referenced throughout all component
+ * stylesheets for a consistent visual language.
+ *
+ * Also includes the global reset (box-sizing, margin/padding) and the
+ * base layout for the #root element (full-height centred flex container).
+ */
+
+/* === Design tokens === */
 :root {
-  --color-bg: #f8f9fa;
-  --color-surface: #ffffff;
-  --color-primary: #5b6abf;
-  --color-primary-hover: #4a59a8;
-  --color-text: #1a1a2e;
-  --color-text-muted: #6c757d;
-  --color-border: #dee2e6;
-  --color-score-low: #e74c3c;
-  --color-score-mid: #f39c12;
-  --color-score-high: #27ae60;
-  --radius: 12px;
-  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --color-bg: #f8f9fa;            /* Page background */
+  --color-surface: #ffffff;        /* Card/panel background */
+  --color-primary: #5b6abf;       /* Buttons, links, accents */
+  --color-primary-hover: #4a59a8; /* Primary hover state */
+  --color-text: #1a1a2e;          /* Main text colour */
+  --color-text-muted: #6c757d;    /* Secondary/dimmed text */
+  --color-border: #dee2e6;        /* Card borders, dividers */
+  --color-score-low: #e74c3c;     /* Scores 1-3 (red) */
+  --color-score-mid: #f39c12;     /* Scores 4-6 (amber) */
+  --color-score-high: #27ae60;    /* Scores 7-10 (green) */
+  --radius: 12px;                 /* Default border radius */
+  --shadow: 0 2px 8px rgba(0, 0, 0, 0.08); /* Subtle card shadow */
 }
 
+/* === Global reset === */
 * {
   margin: 0;
   padding: 0;
@@ -26,6 +39,7 @@ body {
   min-height: 100vh;
 }
 
+/* Centre all content vertically and horizontally */
 #root {
   min-height: 100vh;
   display: flex;

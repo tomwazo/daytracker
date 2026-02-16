@@ -1,3 +1,13 @@
+/**
+ * WordFrequencyChart.tsx — Bar chart showing how often each word is used.
+ *
+ * Displays a horizontal-category bar chart using Recharts where each bar
+ * represents a word and its height is the usage count. The parent component
+ * (Dashboard) slices the data to the top 20 words before passing it in.
+ *
+ * Uses a purple fill colour (#8b5cf6) to visually distinguish it from
+ * the line chart's per-profile colours.
+ */
 import {
   BarChart,
   Bar,
@@ -8,6 +18,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+/** Shape of a single word frequency data point */
 interface WordFrequency {
   word: string;
   count: number;

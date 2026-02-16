@@ -55,6 +55,8 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 - `v1.0` — Auth removed, direct profile selection, dashboard working (tagged on `main`)
 - `v1.1` — Pre-auth baseline: date picker, dashboard, profile selection working (tagged on `main`)
+- `v1.2` — Auth phase 1: Microsoft login required for frontend routes (tagged on `main`)
+- `v1.3` — Auth phase 2: API allowlist and auth enforcement (tagged on `main`)
 
 ## Remaining
 
@@ -194,6 +196,9 @@ mindfulness/
 │   │   ├── main.tsx                # Entry point
 │   │   ├── index.css               # Global styles
 │   │   └── vite-env.d.ts
+│   ├── public/
+│   │   ├── favicon.svg             # App favicon
+│   │   └── staticwebapp.config.json # SWA config (auth routes, provider blocks)
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
@@ -207,6 +212,7 @@ mindfulness/
 │   │   │   ├── getAnalyticsEntries.ts  # GET /api/analytics/entries
 │   │   │   ├── getAnalyticsStats.ts    # GET /api/analytics/stats
 │   │   │   └── getWordFrequency.ts     # GET /api/analytics/word-frequency
+│   │   ├── authHelper.ts           # Allowlist check (decodes x-ms-client-principal)
 │   │   └── cosmosClient.ts         # Cosmos DB connection
 │   ├── host.json
 │   ├── local.settings.json         # Local env vars (git-ignored)
@@ -215,7 +221,6 @@ mindfulness/
 ├── infra/
 │   └── grafana/
 │       └── docker-compose.yml
-├── staticwebapp.config.json
 ├── .gitignore
 └── package.json                    # Root workspace
 ```

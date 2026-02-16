@@ -1,3 +1,18 @@
+/**
+ * Dashboard.tsx — Analytics dashboard page.
+ *
+ * Displays family mindfulness trends using three visualisations:
+ *   - StatsCards: per-profile average scores and total entry count
+ *   - ScoreChart: line chart of scores over time (one line per profile)
+ *   - WordFrequencyChart: bar chart of the top 20 most-used words
+ *
+ * Users can filter by time period (7/30/90 days or all time) and by
+ * individual profile. All three analytics API endpoints are called in
+ * parallel whenever the filters change.
+ *
+ * Auth error handling mirrors the api.ts pattern: 401 redirects to login,
+ * 403 shows an "Access denied" message.
+ */
 import { useState, useEffect } from "react";
 import { subDays, format } from "date-fns";
 import ScoreChart from "./ScoreChart";
@@ -9,8 +24,10 @@ interface DashboardProps {
   onBack: () => void;
 }
 
+/** Available time-period presets for the date range filter */
 type DatePreset = "7d" | "30d" | "90d" | "all";
 
+/** Profile options for the dropdown filter (includes "all" for family-wide view) */
 const PROFILES = [
   { id: "all", label: "All Family Members" },
   { id: "daddy", label: "Daddy" },
@@ -30,7 +47,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Calculate date range based on preset
+  // Recalculate start/end dates whenever the preset changes
   useEffect(() => {
     const today = new Date();
     const end = format(today, "yyyy-MM-dd");
@@ -55,7 +72,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
     setEndDate(end);
   }, [datePreset]);
 
-  // Fetch data when date range or profile filter changes
+  // Fetch all dashboard data when date range or profile filter changes
   useEffect(() => {
     if (!startDate || !endDate) return;
 
@@ -66,7 +83,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
       try {
         const profileParam = profileFilter === "all" ? "" : `&profileId=${profileFilter}`;
 
-        // Fetch entries
+        // Fetch entries for the score chart
         const entriesRes = await fetch(
           `/api/analytics/entries?startDate=${startDate}&endDate=${endDate}${profileParam}`
         );
@@ -76,7 +93,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
         if (!entriesRes.ok) throw new Error("Failed to fetch entries");
         const entriesData = await entriesRes.json();
 
-        // Fetch word frequency
+        // Fetch word frequency for the bar chart
         const wordFreqRes = await fetch(
           `/api/analytics/word-frequency?startDate=${startDate}&endDate=${endDate}${profileParam}`
         );
@@ -85,7 +102,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
         if (!wordFreqRes.ok) throw new Error("Failed to fetch word frequency");
         const wordFreqData = await wordFreqRes.json();
 
-        // Fetch stats
+        // Fetch summary stats for the stat cards
         const statsRes = await fetch(
           `/api/analytics/stats?startDate=${startDate}&endDate=${endDate}`
         );
@@ -112,6 +129,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
 
   return (
     <div className="dashboard">
+      {/* Header with back navigation */}
       <div className="dashboard-header">
         <button onClick={onBack} className="back-button">
           ← Back
@@ -119,6 +137,7 @@ export default function Dashboard({ onBack }: DashboardProps) {
         <h1>Insights & Analytics</h1>
       </div>
 
+      {/* Filter controls: time period presets and profile dropdown */}
       <div className="dashboard-controls">
         <div className="control-group">
           <label>Time Period:</label>
@@ -166,12 +185,14 @@ export default function Dashboard({ onBack }: DashboardProps) {
         </div>
       </div>
 
+      {/* Loading and error states */}
       {loading && (
         <div className="dashboard-loading">Loading dashboard data...</div>
       )}
 
       {error && <div className="dashboard-error">{error}</div>}
 
+      {/* Dashboard content: stats cards followed by charts */}
       {!loading && !error && (
         <>
           <StatsCards stats={stats} profileFilter={profileFilter} />

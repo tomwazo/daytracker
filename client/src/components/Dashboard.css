@@ -1,9 +1,20 @@
+/**
+ * Dashboard.css — Styles for the analytics Dashboard page.
+ *
+ * Layout: full-width up to 1200px, with a header, filter controls bar,
+ * and vertically-stacked chart sections. The filter controls contain
+ * time-period preset buttons (toggled via .active class) and a profile
+ * dropdown. Includes responsive adjustments for mobile (≤768px).
+ */
+
+/* Main dashboard container */
 .dashboard {
   width: 100%;
   max-width: 1200px;
   padding: 1rem;
 }
 
+/* Header row: back button + title */
 .dashboard-header {
   display: flex;
   align-items: center;
@@ -17,6 +28,7 @@
   color: var(--color-text);
 }
 
+/* Back navigation button (shared with DayEntry) */
 .back-button {
   padding: 0.5rem 1rem;
   background: var(--color-surface);
@@ -31,6 +43,7 @@
   background: #f5f5f5;
 }
 
+/* Filter controls bar: time period + profile dropdown */
 .dashboard-controls {
   display: flex;
   flex-wrap: wrap;
@@ -54,6 +67,7 @@
   color: #666;
 }
 
+/* Time period preset buttons row */
 .preset-buttons {
   display: flex;
   gap: 0.5rem;
@@ -74,12 +88,14 @@
   border-color: var(--color-primary);
 }
 
+/* Active state for the selected time period */
 .preset-buttons button.active {
   background: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
 }
 
+/* Profile filter dropdown */
 .control-group select {
   padding: 0.5rem;
   border: 1px solid var(--color-border);
@@ -88,6 +104,7 @@
   cursor: pointer;
 }
 
+/* Loading and error state messages */
 .dashboard-loading,
 .dashboard-error {
   padding: 2rem;
@@ -103,12 +120,14 @@
   border-radius: var(--radius);
 }
 
+/* Vertically-stacked chart sections */
 .dashboard-charts {
   display: flex;
   flex-direction: column;
   gap: 2rem;
 }
 
+/* Individual chart card */
 .chart-section {
   background: var(--color-surface);
   padding: 1.5rem;
@@ -122,6 +141,7 @@
   color: var(--color-text);
 }
 
+/* Empty state placeholder inside charts */
 .chart-empty {
   padding: 3rem;
   text-align: center;
@@ -129,6 +149,7 @@
   font-style: italic;
 }
 
+/* === Mobile responsive adjustments === */
 @media (max-width: 768px) {
   .dashboard {
     padding: 0.5rem;

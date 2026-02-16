@@ -1,3 +1,13 @@
+/**
+ * StatsCards.css — Styles for the summary statistics cards grid.
+ *
+ * Uses CSS Grid with auto-fit columns (min 200px) for a responsive layout.
+ * The "total" card gets a gradient background; profile cards show an emoji
+ * icon, average score, and entry count in a horizontal layout.
+ * Collapses to single column on mobile (≤768px).
+ */
+
+/* Responsive grid container */
 .stats-cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -5,6 +15,7 @@
   margin-bottom: 2rem;
 }
 
+/* Base card style */
 .stat-card {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -20,6 +31,7 @@
   box-shadow: var(--shadow);
 }
 
+/* "Total Entries" card — gradient background, centred layout */
 .stat-card.total {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
@@ -37,11 +49,13 @@
   font-size: 2.5rem;
 }
 
+/* Profile emoji icon */
 .stat-icon {
   font-size: 2.5rem;
   line-height: 1;
 }
 
+/* Text content within each profile card */
 .stat-info {
   flex: 1;
 }
@@ -52,6 +66,7 @@
   margin-bottom: 0.25rem;
 }
 
+/* Average score value */
 .stat-value {
   font-size: 1.75rem;
   font-weight: 600;
@@ -59,18 +74,21 @@
   line-height: 1;
 }
 
+/* "/10" suffix */
 .stat-unit {
   font-size: 1rem;
   font-weight: 400;
   color: #999;
 }
 
+/* Entry count below the score */
 .stat-meta {
   font-size: 0.8rem;
   color: #999;
   margin-top: 0.25rem;
 }
 
+/* === Mobile: single column layout === */
 @media (max-width: 768px) {
   .stats-cards {
     grid-template-columns: 1fr;

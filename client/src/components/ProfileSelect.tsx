@@ -1,3 +1,13 @@
+/**
+ * ProfileSelect.tsx — Landing page with a 2x2 grid of family member profiles.
+ *
+ * Each profile is displayed as a card with an emoji and name. Clicking a
+ * card navigates to that member's DayEntry form. Below the grid, a
+ * "View Insights" button navigates to the analytics Dashboard.
+ *
+ * Profile selection is trust-based — there are no passwords per profile.
+ * Authentication is handled at the Azure SWA level (Microsoft login).
+ */
 import "./ProfileSelect.css";
 
 interface ProfileSelectProps {
@@ -5,6 +15,7 @@ interface ProfileSelectProps {
   onViewInsights: () => void;
 }
 
+/** The four family members with their display names and emoji avatars */
 const profiles = [
   { id: "daddy", label: "Daddy", emoji: "\u{1F468}" },
   { id: "mommy", label: "Mommy", emoji: "\u{1F469}" },
@@ -18,6 +29,7 @@ export default function ProfileSelect({ onSelect, onViewInsights }: ProfileSelec
       <div className="profile-header">
         <h2 className="profile-title">Who are you?</h2>
       </div>
+      {/* 2x2 grid of profile cards */}
       <div className="profile-grid">
         {profiles.map((p) => (
           <button
@@ -30,6 +42,7 @@ export default function ProfileSelect({ onSelect, onViewInsights }: ProfileSelec
           </button>
         ))}
       </div>
+      {/* Navigation to the analytics dashboard */}
       <button
         onClick={onViewInsights}
         className="dashboard-link"

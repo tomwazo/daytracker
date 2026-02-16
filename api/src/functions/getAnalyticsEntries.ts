@@ -1,3 +1,17 @@
+/**
+ * getAnalyticsEntries.ts — Azure Function: GET /api/analytics/entries
+ *
+ * Returns all daily entries within a date range, optionally filtered by
+ * profile. Used by the Dashboard to populate the ScoreChart and entries
+ * table. Results are sorted newest-first.
+ *
+ * Query parameters:
+ *   startDate  (required) — Start of range (YYYY-MM-DD)
+ *   endDate    (required) — End of range (YYYY-MM-DD)
+ *   profileId  (optional) — Filter to a single family member
+ *
+ * Auth: Requires a valid SWA session with an email on the ALLOWED_USERS list.
+ */
 import {
   app,
   HttpRequest,
@@ -7,11 +21,15 @@ import {
 import { getContainer } from "../cosmosClient.js";
 import { getAllowedUser } from "../authHelper.js";
 
+/**
+ * Handler for GET /api/analytics/entries.
+ * Dynamically builds a Cosmos DB SQL query based on the provided filters.
+ */
 async function getAnalyticsEntries(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
-  // Check the authenticated user is on the allowlist
+  // Verify the caller is an authenticated, allowlisted user
   const user = getAllowedUser(request);
   if (!user) {
     return { status: 403, jsonBody: { error: "Access denied" } };
@@ -30,13 +48,14 @@ async function getAnalyticsEntries(
 
   const container = getContainer();
 
-  // Build query
+  // Build parameterised query — date range is always applied
   let query = "SELECT * FROM c WHERE c.date >= @startDate AND c.date <= @endDate";
   const parameters: Array<{ name: string; value: string }> = [
     { name: "@startDate", value: startDate },
     { name: "@endDate", value: endDate },
   ];
 
+  // Optionally narrow results to a single profile
   if (profileId) {
     query += " AND c.profileId = @profileId";
     parameters.push({ name: "@profileId", value: profileId });
@@ -62,6 +81,7 @@ async function getAnalyticsEntries(
   }
 }
 
+/** Register the Azure Function on GET /api/analytics/entries */
 app.http("getAnalyticsEntries", {
   methods: ["GET"],
   authLevel: "anonymous",

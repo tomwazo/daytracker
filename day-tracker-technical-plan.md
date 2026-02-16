@@ -36,7 +36,8 @@ mindfulness/
 │   │   ├── index.css               # Global styles
 │   │   └── vite-env.d.ts           # TypeScript declarations
 │   ├── public/
-│   │   └── favicon.svg             # App favicon
+│   │   ├── favicon.svg             # App favicon
+│   │   └── staticwebapp.config.json # SWA config (auth routes, provider blocks)
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
@@ -46,10 +47,11 @@ mindfulness/
 │   │   ├── functions/
 │   │   │   ├── getEntry.ts         # GET entry for profile/date
 │   │   │   ├── createEntry.ts      # POST new daily entry
-│   │   │   └── getWords.ts         # GET word history for autocomplete
-│   │   ├── getAnalyticsEntries.ts   # GET analytics entries
+│   │   │   ├── getWords.ts         # GET word history for autocomplete
+│   │   │   ├── getAnalyticsEntries.ts   # GET analytics entries
 │   │   │   ├── getAnalyticsStats.ts    # GET analytics stats
 │   │   │   └── getWordFrequency.ts     # GET word frequency
+│   │   ├── authHelper.ts           # Allowlist check (decodes x-ms-client-principal)
 │   │   └── cosmosClient.ts         # Cosmos DB connection
 │   ├── host.json
 │   ├── local.settings.json         # Local env vars (gitignored)
@@ -61,7 +63,6 @@ mindfulness/
 ├── .github/
 │   └── workflows/
 │       └── azure-static-web-apps-*.yml  # CI/CD with version injection
-├── staticwebapp.config.json        # SWA config with auth and routing
 ├── .gitignore
 └── package.json                    # Root workspace
 ```
@@ -110,7 +111,7 @@ Authentication is handled by Azure SWA's built-in Microsoft (Entra ID) provider:
 7. Users not on the allowlist receive a 403 Access Denied response
 
 **Environment Variables:**
-- `BUILD_NUMBER` (Client build): GitHub Actions run number for version badge
+- `BUILD_NUMBER` (Client build): Git tag name for version badge (e.g. `v1.4`)
 - `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` (API): Cosmos DB connection
 - `ALLOWED_USERS` (API): Comma-separated list of allowed Microsoft email addresses
 
@@ -180,8 +181,8 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 ### Phase 7: Version Display (Added)
 - Create `VersionBadge` component showing version in top-right corner
 - Configure Vite to inject `__APP_VERSION__` from `BUILD_NUMBER` env var
-- GitHub Actions run number auto-increments on each deployment
-- Shows "vdev" in local development
+- Version comes from Git tag name (e.g. `v1.4`) — set by GitHub Actions workflow
+- Shows "dev" in local development
 
 ### Phase 8: Word Validation (Added)
 - Prevent spaces in word input fields
@@ -218,18 +219,25 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 
 - **Repo**: `tomwazo/daytracker` on GitHub
 - **Branches**:
-  - `main` — production deployments (triggers SWA CI/CD)
+  - `main` — production-ready code (merging alone does NOT deploy)
   - `develop` — active development branch
-- **Workflow**: Push to `develop`, merge to `main` via PR to deploy
+- **Deployment trigger**: Only pushing a `v*` Git tag triggers production deployment
+- **Workflow**:
+  1. Develop on `develop` branch
+  2. Merge PR from `develop` → `main`
+  3. Tag the commit: `git tag -a v1.x -m "Description"`
+  4. Push the tag: `git push origin v1.x` → triggers CI/CD deployment
+  5. App displays the tag name (e.g. "v1.4") in the version badge
 - **Live URL**: `https://nice-meadow-0cb162303.1.azurestaticapps.net`
 
 ### Release Tags
 
-Known good versions on `main` are tagged for easy rollback:
-
 | Tag | Description |
 |-----|-------------|
 | `v1.0` | Auth removed, direct profile selection, dashboard working |
+| `v1.1` | Pre-auth baseline: date picker, dashboard, profile selection working |
+| `v1.2` | Auth phase 1: Microsoft login required for frontend routes |
+| `v1.3` | Auth phase 2: API allowlist and auth enforcement |
 
 **Tagging a new release:**
 ```bash
@@ -242,6 +250,8 @@ git push origin v1.x
 git checkout main
 git reset --hard v1.x
 git push --force-with-lease origin main
+git tag -a v1.x-rollback -m "Rollback to v1.x"
+git push origin v1.x-rollback
 ```
 
 ## Verification
@@ -249,7 +259,7 @@ git push --force-with-lease origin main
 - **Local dev**: Run `swa start` to test frontend + functions together locally
 - **API testing**: Use REST client or curl to test each endpoint
 - **App flow**: Open the app → should redirect to Microsoft login → after login, see profile selection
-- **Version display**: Check top-right corner shows `v{number}` matching GitHub Actions run number
+- **Version display**: Check top-right corner shows the Git tag (e.g. `v1.4`); shows "dev" locally
 - **One-entry-per-day**: Attempt duplicate submissions and verify they're blocked/updated
 - **Word validation**: Try entering words with spaces and duplicate words, verify rejection
 - **Autocomplete**: Enter words over multiple days and verify suggestions populate
