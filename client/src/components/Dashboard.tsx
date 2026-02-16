@@ -70,6 +70,9 @@ export default function Dashboard({ onBack }: DashboardProps) {
         const entriesRes = await fetch(
           `/api/analytics/entries?startDate=${startDate}&endDate=${endDate}${profileParam}`
         );
+        // Redirect to login if session expired, or show access denied
+        if (entriesRes.status === 401) { window.location.href = "/.auth/login/aad"; return; }
+        if (entriesRes.status === 403) throw new Error("Access denied. Your account is not authorised.");
         if (!entriesRes.ok) throw new Error("Failed to fetch entries");
         const entriesData = await entriesRes.json();
 
@@ -77,6 +80,8 @@ export default function Dashboard({ onBack }: DashboardProps) {
         const wordFreqRes = await fetch(
           `/api/analytics/word-frequency?startDate=${startDate}&endDate=${endDate}${profileParam}`
         );
+        if (wordFreqRes.status === 401) { window.location.href = "/.auth/login/aad"; return; }
+        if (wordFreqRes.status === 403) throw new Error("Access denied. Your account is not authorised.");
         if (!wordFreqRes.ok) throw new Error("Failed to fetch word frequency");
         const wordFreqData = await wordFreqRes.json();
 
@@ -84,6 +89,8 @@ export default function Dashboard({ onBack }: DashboardProps) {
         const statsRes = await fetch(
           `/api/analytics/stats?startDate=${startDate}&endDate=${endDate}`
         );
+        if (statsRes.status === 401) { window.location.href = "/.auth/login/aad"; return; }
+        if (statsRes.status === 403) throw new Error("Access denied. Your account is not authorised.");
         if (!statsRes.ok) throw new Error("Failed to fetch stats");
         const statsData = await statsRes.json();
 
@@ -92,7 +99,9 @@ export default function Dashboard({ onBack }: DashboardProps) {
         setStats(statsData);
       } catch (err) {
         console.error("Error fetching dashboard data:", err);
-        setError("Failed to load dashboard data. Please try again.");
+        // Show the specific error message (e.g. "Access denied") if available
+        const message = err instanceof Error ? err.message : "Failed to load dashboard data. Please try again.";
+        setError(message);
       } finally {
         setLoading(false);
       }

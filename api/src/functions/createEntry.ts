@@ -5,6 +5,7 @@ import {
   InvocationContext,
 } from "@azure/functions";
 import { getContainer } from "../cosmosClient.js";
+import { getAllowedUser } from "../authHelper.js";
 
 interface EntryBody {
   profileId: string;
@@ -19,6 +20,12 @@ async function createEntry(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
+  // Check the authenticated user is on the allowlist
+  const user = getAllowedUser(request);
+  if (!user) {
+    return { status: 403, jsonBody: { error: "Access denied" } };
+  }
+
   const body = (await request.json()) as EntryBody;
 
   // Validate profileId
