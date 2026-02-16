@@ -36,7 +36,8 @@ mindfulness/
 │   │   ├── index.css               # Global styles
 │   │   └── vite-env.d.ts           # TypeScript declarations
 │   ├── public/
-│   │   └── favicon.svg             # App favicon
+│   │   ├── favicon.svg             # App favicon
+│   │   └── staticwebapp.config.json # SWA config (auth routes, provider blocks)
 │   ├── index.html
 │   ├── package.json
 │   ├── tsconfig.json
@@ -46,10 +47,11 @@ mindfulness/
 │   │   ├── functions/
 │   │   │   ├── getEntry.ts         # GET entry for profile/date
 │   │   │   ├── createEntry.ts      # POST new daily entry
-│   │   │   └── getWords.ts         # GET word history for autocomplete
-│   │   ├── getAnalyticsEntries.ts   # GET analytics entries
+│   │   │   ├── getWords.ts         # GET word history for autocomplete
+│   │   │   ├── getAnalyticsEntries.ts   # GET analytics entries
 │   │   │   ├── getAnalyticsStats.ts    # GET analytics stats
 │   │   │   └── getWordFrequency.ts     # GET word frequency
+│   │   ├── authHelper.ts           # Allowlist check (decodes x-ms-client-principal)
 │   │   └── cosmosClient.ts         # Cosmos DB connection
 │   ├── host.json
 │   ├── local.settings.json         # Local env vars (gitignored)
@@ -61,7 +63,6 @@ mindfulness/
 ├── .github/
 │   └── workflows/
 │       └── azure-static-web-apps-*.yml  # CI/CD with version injection
-├── staticwebapp.config.json        # SWA config with auth and routing
 ├── .gitignore
 └── package.json                    # Root workspace
 ```
@@ -230,6 +231,9 @@ Known good versions on `main` are tagged for easy rollback:
 | Tag | Description |
 |-----|-------------|
 | `v1.0` | Auth removed, direct profile selection, dashboard working |
+| `v1.1` | Pre-auth baseline: date picker, dashboard, profile selection working |
+| `v1.2` | Auth phase 1: Microsoft login required for frontend routes |
+| `v1.3` | Auth phase 2: API allowlist and auth enforcement |
 
 **Tagging a new release:**
 ```bash
