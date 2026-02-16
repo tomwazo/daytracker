@@ -11,7 +11,7 @@ Building the Day Tracker app described in `day-tracker-idea.md`: a family mindfu
 | Frontend | React + TypeScript |
 | Backend | Azure Functions (Node.js/TypeScript) |
 | Database | Azure Cosmos DB (NoSQL, free tier) |
-| Auth | None (open access, profile-based identity) |
+| Auth | Azure SWA built-in Microsoft (Entra ID) authentication |
 | Hosting | Azure Static Web Apps (free tier, includes Azure Functions) |
 | CI/CD | GitHub → Azure Static Web Apps (built-in) |
 
@@ -99,12 +99,14 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 
 ## App Flow
 
-No authentication — the app opens directly to profile selection:
+Authentication is handled by Azure SWA's built-in Microsoft (Entra ID) provider:
 
-1. User visits the app and sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
-2. Profile selection is trust-based within the family — no passwords
-3. Selecting a profile takes the user to their daily entry screen
-4. API endpoints are open (no token validation)
+1. Unauthenticated users are automatically redirected to Microsoft login
+2. Only Microsoft accounts are accepted (GitHub/Twitter providers are blocked)
+3. After login, the user sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
+4. Profile selection is trust-based within the family — no passwords
+5. Selecting a profile takes the user to their daily entry screen
+6. API endpoints are currently open (Phase 2 will add API-level auth and account allowlisting)
 
 **Environment Variables:**
 - `BUILD_NUMBER` (Client build): GitHub Actions run number for version badge
@@ -155,9 +157,11 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - Wire up API calls
 
 ### Phase 4: Authentication
-- **Removed** — authentication was stripped out in favour of direct profile selection
-- The app opens straight to the profile picker with no login required
-- API endpoints are open (no token validation)
+- **Phase 1 (complete):** Azure SWA built-in Microsoft (Entra ID) login required for all frontend routes
+- Non-Microsoft auth providers (GitHub, Twitter) blocked
+- Unauthenticated users redirected to `/.auth/login/aad`
+- API endpoints remain anonymous for now
+- **Phase 2 (planned):** Add API-level auth checks and restrict access to specific Microsoft accounts via allowlist
 
 ### Phase 5: Deploy
 - Create Azure Static Web App resource
@@ -240,7 +244,7 @@ git push --force-with-lease origin main
 
 - **Local dev**: Run `swa start` to test frontend + functions together locally
 - **API testing**: Use REST client or curl to test each endpoint
-- **App flow**: Open the app → should go straight to profile selection
+- **App flow**: Open the app → should redirect to Microsoft login → after login, see profile selection
 - **Version display**: Check top-right corner shows `v{number}` matching GitHub Actions run number
 - **One-entry-per-day**: Attempt duplicate submissions and verify they're blocked/updated
 - **Word validation**: Try entering words with spaces and duplicate words, verify rejection

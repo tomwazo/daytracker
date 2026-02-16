@@ -37,9 +37,11 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 
 ### Phase 4: Authentication
 
-- **Removed** — authentication was stripped out in favour of direct profile selection
-- The app opens straight to the profile picker with no login required
-- API endpoints are open (no token validation)
+- **Phase 1 (complete):** Azure SWA built-in Microsoft (Entra ID) login required for all frontend routes
+- Non-Microsoft auth providers (GitHub, Twitter) blocked via `staticwebapp.config.json`
+- Unauthenticated users automatically redirected to `/.auth/login/aad`
+- API endpoints remain anonymous for now
+- **Phase 2 (planned):** Add API-level auth checks and restrict access to specific Microsoft accounts via allowlist
 
 ### Build Verification
 
@@ -50,6 +52,7 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 ### Release Tags
 
 - `v1.0` — Auth removed, direct profile selection, dashboard working (tagged on `main`)
+- `v1.1` — Pre-auth baseline: date picker, dashboard, profile selection working (tagged on `main`)
 
 ## Remaining
 
@@ -116,7 +119,8 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 1. Push your changes to GitHub — the GitHub Action will auto-deploy
 2. Visit your SWA URL (e.g. `https://<your-app-name>.azurestaticapps.net`)
 3. Verify:
-   - [ ] Profile selection screen shows immediately on load
+   - [ ] Unauthenticated visit redirects to Microsoft login
+   - [ ] After login, profile selection screen shows
    - [ ] Submitting a day entry succeeds (check Cosmos DB Data Explorer to confirm)
    - [ ] Returning to the same profile on the same day loads the existing entry
    - [ ] Submitting again upserts (updates) the same entry
