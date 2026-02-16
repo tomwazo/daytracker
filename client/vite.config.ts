@@ -3,8 +3,9 @@
  *
  * Key settings:
  *   - React plugin for JSX/TSX support
- *   - __APP_VERSION__ define: injects the BUILD_NUMBER env var (set by GitHub
- *     Actions) as a compile-time constant. Falls back to "dev" locally.
+ *   - __APP_VERSION__ define: injects the BUILD_NUMBER env var (set to the
+ *     Git tag name by GitHub Actions) as a compile-time constant. Falls back
+ *     to "dev" locally.
  *   - Dev server proxy: forwards /api/* requests to the local Azure Functions
  *     host (port 7071) so the frontend can call the API without CORS issues.
  */
