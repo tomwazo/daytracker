@@ -1,3 +1,16 @@
+/**
+ * ScoreChart.tsx — Line chart showing daily scores over time.
+ *
+ * Uses Recharts' LineChart to plot each family member's score as a
+ * separate coloured line. When the profile filter is set to "all",
+ * all four profiles are shown; otherwise only the selected profile's
+ * line is rendered.
+ *
+ * Data transformation:
+ *   - Groups flat entry array by date into { date, daddy?, mommy?, ... } rows
+ *   - Sorts chronologically for the X-axis
+ *   - Uses connectNulls so gaps (missing days) don't break the lines
+ */
 import {
   LineChart,
   Line,
@@ -20,6 +33,7 @@ interface ScoreChartProps {
   profileFilter: string;
 }
 
+/** Unique colour for each family member's line */
 const PROFILE_COLORS = {
   daddy: "#3b82f6",
   mommy: "#ec4899",
@@ -27,6 +41,7 @@ const PROFILE_COLORS = {
   imogen: "#10b981",
 };
 
+/** Human-readable labels for the legend and tooltip */
 const PROFILE_LABELS = {
   daddy: "Daddy",
   mommy: "Mommy",
@@ -39,7 +54,7 @@ export default function ScoreChart({ entries, profileFilter }: ScoreChartProps) 
     return <div className="chart-empty">No data available for this period.</div>;
   }
 
-  // Group entries by date
+  // Pivot entries into one row per date: { date, daddy: 7, mommy: 8, ... }
   const dateMap: Record<string, any> = {};
   entries.forEach((entry) => {
     if (!dateMap[entry.date]) {
@@ -48,11 +63,12 @@ export default function ScoreChart({ entries, profileFilter }: ScoreChartProps) 
     dateMap[entry.date][entry.profileId] = entry.score;
   });
 
+  // Sort rows chronologically for the X-axis
   const chartData = Object.values(dateMap).sort((a, b) =>
     a.date.localeCompare(b.date)
   );
 
-  // Determine which profiles to show
+  // Show all profiles or just the selected one
   const profiles =
     profileFilter === "all"
       ? ["daddy", "mommy", "tabitha", "imogen"]
@@ -66,6 +82,7 @@ export default function ScoreChart({ entries, profileFilter }: ScoreChartProps) 
           dataKey="date"
           tick={{ fontSize: 12 }}
           tickFormatter={(value) => {
+            // Display dates as M/D for brevity
             const date = new Date(value);
             return `${date.getMonth() + 1}/${date.getDate()}`;
           }}
@@ -83,6 +100,7 @@ export default function ScoreChart({ entries, profileFilter }: ScoreChartProps) 
             PROFILE_LABELS[value as keyof typeof PROFILE_LABELS] || value
           }
         />
+        {/* Render one line per visible profile */}
         {profiles.map((profileId) => (
           <Line
             key={profileId}

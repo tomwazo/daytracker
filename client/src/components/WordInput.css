@@ -1,7 +1,18 @@
+/**
+ * WordInput.css — Styles for the autocomplete word input component.
+ *
+ * The wrapper uses position:relative to anchor the absolutely-positioned
+ * suggestion dropdown. The dropdown appears directly below the input with
+ * a slight gap, elevated via z-index and box-shadow. Suggestion items
+ * highlight on hover with the page background colour.
+ */
+
+/* Positioning anchor for the dropdown */
 .word-input-wrapper {
   position: relative;
 }
 
+/* Text input field */
 .word-input {
   width: 100%;
   padding: 0.6rem 0.75rem;
@@ -12,10 +23,12 @@
   transition: border-color 0.2s;
 }
 
+/* Focus state: highlight border */
 .word-input:focus {
   border-color: var(--color-primary);
 }
 
+/* Autocomplete suggestion dropdown */
 .word-suggestions {
   position: absolute;
   top: 100%;
@@ -31,6 +44,7 @@
   z-index: 10;
 }
 
+/* Individual suggestion item (rendered as a button for accessibility) */
 .word-suggestion {
   display: block;
   width: 100%;
@@ -43,6 +57,7 @@
   color: var(--color-text);
 }
 
+/* Hover highlight */
 .word-suggestion:hover {
   background: var(--color-bg);
 }

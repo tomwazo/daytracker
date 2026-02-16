@@ -1,3 +1,10 @@
+/**
+ * VersionBadge.css — Styles for the fixed version number overlay.
+ *
+ * Positioned in the top-right corner of the viewport. Rendered at low
+ * opacity and with pointer-events disabled so it never interferes with
+ * page interaction. Non-selectable to prevent accidental copy-paste.
+ */
 .version-badge {
   position: fixed;
   top: 0.5rem;

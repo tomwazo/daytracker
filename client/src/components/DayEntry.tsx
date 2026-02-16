@@ -1,3 +1,18 @@
+/**
+ * DayEntry.tsx — Daily entry form for a single family member.
+ *
+ * This is the main interaction screen where a user:
+ *   1. Selects a date (defaults to today, can pick past dates)
+ *   2. Rates their day on a 1-10 slider
+ *   3. Enters three descriptive words (with autocomplete from past entries)
+ *   4. Submits the entry
+ *
+ * If an entry already exists for the selected date, it shows a read-only
+ * confirmation view with the saved score and words instead of the form.
+ *
+ * The component re-fetches data whenever the selected date changes,
+ * allowing users to navigate between dates and see/submit entries.
+ */
 import { useState, useEffect } from "react";
 import WordInput from "./WordInput";
 import { fetchEntry, fetchWords, submitEntry } from "../api";
@@ -8,10 +23,15 @@ interface DayEntryProps {
   onBack: () => void;
 }
 
+/** Returns today's date as YYYY-MM-DD string */
 function getToday(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/**
+ * Maps a score to a CSS colour variable for visual feedback:
+ *   1-3 → red (low), 4-6 → amber (mid), 7-10 → green (high)
+ */
 function getScoreColor(score: number): string {
   if (score <= 3) return "var(--color-score-low)";
   if (score <= 6) return "var(--color-score-mid)";
@@ -28,8 +48,10 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  /** Capitalise first letter of profileId for display (e.g. "daddy" → "Daddy") */
   const profileLabel = profileId.charAt(0).toUpperCase() + profileId.slice(1);
 
+  // Load existing entry and past words whenever profileId or date changes
   useEffect(() => {
     async function load() {
       setLoading(true);
@@ -40,16 +62,18 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
         ]);
         setSuggestions(pastWords);
         if (existing) {
+          // Entry already exists — show read-only confirmation view
           setScore(existing.score);
           setWords(existing.words);
           setSubmitted(true);
         } else {
+          // No entry yet — reset form for fresh submission
           setScore(5);
           setWords(["", "", ""]);
           setSubmitted(false);
         }
       } catch {
-        // Ignore fetch errors for now — user can still submit
+        // Ignore fetch errors — user can still submit a new entry
       } finally {
         setLoading(false);
       }
@@ -57,23 +81,24 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
     load();
   }, [profileId, selectedDate]);
 
+  /** Validates input and submits the entry to the API */
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
     const trimmed = words.map((w) => w.trim());
+
+    // Frontend validation (mirrors backend rules)
     if (trimmed.some((w) => w.length === 0)) {
       setError("Please enter all three words.");
       return;
     }
 
-    // Check for spaces in words
     if (trimmed.some((w) => /\s/.test(w))) {
       setError("Words cannot contain spaces.");
       return;
     }
 
-    // Check for duplicate words
     const uniqueWords = new Set(trimmed.map((w) => w.toLowerCase()));
     if (uniqueWords.size !== trimmed.length) {
       setError("Each word must be unique.");
@@ -91,6 +116,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
     }
   }
 
+  /** Updates a single word in the words array by index */
   function updateWord(index: number, value: string) {
     setWords((prev) => {
       const next = [...prev];
@@ -105,6 +131,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
 
   return (
     <div className="day-entry">
+      {/* Header: back button, profile name, and date picker */}
       <div className="day-entry-header">
         <button className="back-button" onClick={onBack}>
           &larr; Back
@@ -120,6 +147,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
       </div>
 
       {submitted ? (
+        /* Read-only confirmation view — shown when an entry already exists */
         <div className="day-entry-done">
           <p className="done-score" style={{ color: getScoreColor(score) }}>
             {score}/10
@@ -128,6 +156,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
           <p className="done-message">Entry saved!</p>
         </div>
       ) : (
+        /* Entry form — score slider + three word inputs */
         <form className="day-entry-form" onSubmit={handleSubmit}>
           <div className="score-section">
             <label className="score-label">
