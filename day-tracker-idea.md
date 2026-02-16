@@ -29,7 +29,8 @@ A web application for daily self-reflection, allowing users to score their day a
 
 ### Multi-User Support
 
-- The app opens directly to a **2x2 grid of buttons**, one per family member (no login required)
+- The app requires **Microsoft (Entra ID) login** before accessing any page
+- After login, the app opens to a **2x2 grid of buttons**, one per family member
 - Four fixed profiles: **Daddy**, **Mommy**, **Tabitha**, **Imogen**
 - Below the 2x2 grid, a **fifth button** for **viewing the Grafana dashboards**
 - Selecting a profile takes you to that user's daily entry screen
