@@ -40,8 +40,10 @@ A family mindfulness app where four users (Daddy, Mommy, Tabitha, Imogen) score 
 - **Phase 1 (complete):** Azure SWA built-in Microsoft (Entra ID) login required for all frontend routes
 - Non-Microsoft auth providers (GitHub, Twitter) blocked via `staticwebapp.config.json`
 - Unauthenticated users automatically redirected to `/.auth/login/aad`
-- API endpoints remain anonymous for now
-- **Phase 2 (planned):** Add API-level auth checks and restrict access to specific Microsoft accounts via allowlist
+- **Phase 2 (complete):** API endpoints require authentication and check user email against `ALLOWED_USERS` allowlist
+- Shared `authHelper.ts` decodes SWA's `x-ms-client-principal` header and validates against allowlist
+- Users not on the allowlist receive 403 Access Denied
+- Frontend handles 401/403 gracefully (redirect to login or show error message)
 
 ### Build Verification
 

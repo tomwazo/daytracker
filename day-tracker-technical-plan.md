@@ -106,11 +106,13 @@ Authentication is handled by Azure SWA's built-in Microsoft (Entra ID) provider:
 3. After login, the user sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
 4. Profile selection is trust-based within the family — no passwords
 5. Selecting a profile takes the user to their daily entry screen
-6. API endpoints are currently open (Phase 2 will add API-level auth and account allowlisting)
+6. API endpoints require authentication and check the user's email against an allowlist (`ALLOWED_USERS` env var)
+7. Users not on the allowlist receive a 403 Access Denied response
 
 **Environment Variables:**
 - `BUILD_NUMBER` (Client build): GitHub Actions run number for version badge
 - `COSMOS_ENDPOINT`, `COSMOS_KEY`, `COSMOS_DATABASE` (API): Cosmos DB connection
+- `ALLOWED_USERS` (API): Comma-separated list of allowed Microsoft email addresses
 
 ## Interactive Dashboard
 
@@ -160,8 +162,10 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - **Phase 1 (complete):** Azure SWA built-in Microsoft (Entra ID) login required for all frontend routes
 - Non-Microsoft auth providers (GitHub, Twitter) blocked
 - Unauthenticated users redirected to `/.auth/login/aad`
-- API endpoints remain anonymous for now
-- **Phase 2 (planned):** Add API-level auth checks and restrict access to specific Microsoft accounts via allowlist
+- **Phase 2 (complete):** API endpoints require authentication and check user email against `ALLOWED_USERS` allowlist
+- Shared `authHelper.ts` decodes SWA's `x-ms-client-principal` header
+- Users not on the allowlist receive 403 Access Denied
+- Frontend handles 401/403 gracefully (redirect to login or show error message)
 
 ### Phase 5: Deploy
 - Create Azure Static Web App resource

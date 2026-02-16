@@ -5,11 +5,18 @@ import {
   InvocationContext,
 } from "@azure/functions";
 import { getContainer } from "../cosmosClient.js";
+import { getAllowedUser } from "../authHelper.js";
 
 async function getAnalyticsEntries(
   request: HttpRequest,
   _context: InvocationContext
 ): Promise<HttpResponseInit> {
+  // Check the authenticated user is on the allowlist
+  const user = getAllowedUser(request);
+  if (!user) {
+    return { status: 403, jsonBody: { error: "Access denied" } };
+  }
+
   const startDate = request.query.get("startDate");
   const endDate = request.query.get("endDate");
   const profileId = request.query.get("profileId");
