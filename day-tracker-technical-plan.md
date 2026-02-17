@@ -293,3 +293,8 @@ git push origin v1.x-rollback
 **Cause**: SWA's `authenticated` role only checks "is the user logged in?", not "are they on the allowlist?". The frontend had no authorization check — `App.tsx` unconditionally rendered `ProfileSelect` for any authenticated user. The `DayEntry.tsx` catch block also silently swallowed 403 errors from the API.
 **Fix**: Added `/api/me` endpoint for allowlist verification. `App.tsx` now calls it on load and shows "Access Denied" for unauthorized users. Fixed `DayEntry.tsx` to surface 403 errors instead of ignoring them.
 
+### Existing Entry Shows "Entry saved!" Instead of Already-Submitted Message (Fixed, Issue #30)
+**Symptom**: When viewing a date that already has an entry, the read-only view shows "Entry saved!" — implying the user just submitted it
+**Cause**: The `submitted` state was set to `true` in both cases (loading an existing entry and fresh submission) with no way to distinguish them
+**Fix**: Added `justSubmitted` state that is only `true` after a fresh submission. The message now shows "Entry saved!" after submitting, or "Entry already submitted for this date!" when viewing a previously saved entry.
+
