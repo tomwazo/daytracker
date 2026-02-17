@@ -31,8 +31,9 @@ A web application for daily self-reflection, allowing users to score their day a
 
 - The app requires **Microsoft (Entra ID) login** before accessing any page
 - Only specific Microsoft accounts are allowed access (configured via an **allowlist**)
-- Any other authenticated user receives an **Access Denied** response
-- After login, the app opens to a **2x2 grid of buttons**, one per family member
+- After login, the app **verifies the user is on the allowlist** before showing any content
+- Any other authenticated user sees an **Access Denied** screen
+- Authorised users see a **2x2 grid of buttons**, one per family member
 - Four fixed profiles: **Daddy**, **Mommy**, **Tabitha**, **Imogen**
 - Below the 2x2 grid, a **fifth button** for **viewing the Grafana dashboards**
 - Selecting a profile takes you to that user's daily entry screen
