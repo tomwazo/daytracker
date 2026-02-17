@@ -48,6 +48,7 @@ mindfulness/
 │   │   │   ├── getEntry.ts         # GET entry for profile/date
 │   │   │   ├── createEntry.ts      # POST new daily entry
 │   │   │   ├── getWords.ts         # GET word history for autocomplete
+│   │   │   ├── getMe.ts                # GET /api/me — auth check endpoint
 │   │   │   ├── getAnalyticsEntries.ts   # GET analytics entries
 │   │   │   ├── getAnalyticsStats.ts    # GET analytics stats
 │   │   │   └── getWordFrequency.ts     # GET word frequency
@@ -94,6 +95,7 @@ The `id` format (`profileId-date`) enforces one entry per profile per day natura
 | GET | `/api/entry/{profileId}/{date}` | Get entry for a profile on a date |
 | POST | `/api/entry` | Create a new daily entry |
 | GET | `/api/words/{profileId}` | Get all unique past words for autocomplete |
+| GET | `/api/me` | Auth check — returns user email if on allowlist, 403 if not |
 | GET | `/api/analytics/entries?startDate={date}&endDate={date}&profileId={id}` | Get entries for date range, optionally filtered by profile |
 | GET | `/api/analytics/word-frequency?startDate={date}&endDate={date}&profileId={id}` | Get word frequency counts for date range |
 | GET | `/api/analytics/stats?startDate={date}&endDate={date}` | Get summary statistics (avg scores per profile) |
@@ -104,11 +106,13 @@ Authentication is handled by Azure SWA's built-in Microsoft (Entra ID) provider:
 
 1. Unauthenticated users are automatically redirected to Microsoft login
 2. Only Microsoft accounts are accepted (GitHub/Twitter providers are blocked)
-3. After login, the user sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
-4. Profile selection is trust-based within the family — no passwords
-5. Selecting a profile takes the user to their daily entry screen
-6. API endpoints require authentication and check the user's email against an allowlist (`ALLOWED_USERS` env var)
-7. Users not on the allowlist receive a 403 Access Denied response
+3. After login, the frontend calls `/api/me` to verify the user is on the allowlist
+4. If not on the allowlist, an "Access Denied" screen is shown (no app content rendered)
+5. If authorised, the user sees the profile picker (Daddy, Mommy, Tabitha, Imogen)
+6. Profile selection is trust-based within the family — no passwords
+7. Selecting a profile takes the user to their daily entry screen
+8. All API endpoints require authentication and check the user's email against an allowlist (`ALLOWED_USERS` env var)
+9. Users not on the allowlist receive a 403 Access Denied response
 
 **Environment Variables:**
 - `BUILD_NUMBER` (Client build): Git tag name for version badge (e.g. `v1.4`)
@@ -167,6 +171,11 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 - Shared `authHelper.ts` decodes SWA's `x-ms-client-principal` header
 - Users not on the allowlist receive 403 Access Denied
 - Frontend handles 401/403 gracefully (redirect to login or show error message)
+- **Phase 3 (complete, Issue #37):** Frontend authorization gate
+- `App.tsx` calls `/api/me` on load before rendering any content
+- Unauthorized users see an "Access Denied" screen instead of the profile grid
+- New `getMe.ts` Azure Function returns user email if on allowlist, 403 if not
+- `DayEntry.tsx` no longer silently swallows 403 errors
 
 ### Phase 5: Deploy
 - Create Azure Static Web App resource
@@ -238,6 +247,7 @@ Built-in analytics dashboard using **Recharts** (React charting library):
 | `v1.1` | Pre-auth baseline: date picker, dashboard, profile selection working |
 | `v1.2` | Auth phase 1: Microsoft login required for frontend routes |
 | `v1.3` | Auth phase 2: API allowlist and auth enforcement |
+| `v1.4` | Tag-based versioning and deployment, codebase documentation |
 
 **Tagging a new release:**
 ```bash
@@ -258,7 +268,7 @@ git push origin v1.x-rollback
 
 - **Local dev**: Run `swa start` to test frontend + functions together locally
 - **API testing**: Use REST client or curl to test each endpoint
-- **App flow**: Open the app → should redirect to Microsoft login → after login, see profile selection
+- **App flow**: Open the app → should redirect to Microsoft login → after login, allowlist check → see profile selection (or "Access Denied" if not on allowlist)
 - **Version display**: Check top-right corner shows the Git tag (e.g. `v1.4`); shows "dev" locally
 - **One-entry-per-day**: Attempt duplicate submissions and verify they're blocked/updated
 - **Word validation**: Try entering words with spaces and duplicate words, verify rejection
@@ -277,4 +287,9 @@ git push origin v1.x-rollback
 **Symptom**: Browser requests `/favicon.ico` and gets 404 from Azure
 **Cause**: No favicon file provided
 **Fix**: Added `client/public/favicon.svg` with simple DT logo
+
+### Unauthorized Users Could Access Profile Selection (Fixed, Issue #37)
+**Symptom**: Microsoft accounts not on the allowlist could see the profile selection page
+**Cause**: SWA's `authenticated` role only checks "is the user logged in?", not "are they on the allowlist?". The frontend had no authorization check — `App.tsx` unconditionally rendered `ProfileSelect` for any authenticated user. The `DayEntry.tsx` catch block also silently swallowed 403 errors from the API.
+**Fix**: Added `/api/me` endpoint for allowlist verification. `App.tsx` now calls it on load and shows "Access Denied" for unauthorized users. Fixed `DayEntry.tsx` to surface 403 errors instead of ignoring them.
 

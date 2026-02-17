@@ -37,6 +37,17 @@ function checkAuthError(res: Response): void {
 }
 
 /**
+ * Checks whether the current user is authorised (on the allowlist).
+ * Called on app load to gate access before rendering any content.
+ * Throws if the user is not authenticated or not on the allowlist.
+ */
+export async function checkAccess(): Promise<void> {
+  const res = await fetch(`${BASE}/me`);
+  checkAuthError(res);
+  if (!res.ok) throw new Error("Auth check failed");
+}
+
+/**
  * Fetches the entry for a given profile and date.
  * Returns null if no entry exists (API returns { entry: null }).
  */

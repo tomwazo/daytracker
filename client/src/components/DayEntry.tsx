@@ -72,8 +72,13 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
           setWords(["", "", ""]);
           setSubmitted(false);
         }
-      } catch {
-        // Ignore fetch errors — user can still submit a new entry
+      } catch (err) {
+        // Re-throw auth errors so the user sees the denial.
+        // Other fetch errors (e.g. network issues) are non-fatal —
+        // the user can still fill in and submit a new entry.
+        if (err instanceof Error && err.message.includes("Access denied")) {
+          setError(err.message);
+        }
       } finally {
         setLoading(false);
       }

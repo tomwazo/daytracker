@@ -9,18 +9,30 @@
  *
  * The VersionBadge is rendered on every screen as a fixed overlay.
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import ProfileSelect from "./components/ProfileSelect";
 import DayEntry from "./components/DayEntry";
 import Dashboard from "./components/Dashboard";
 import VersionBadge from "./components/VersionBadge";
+import { checkAccess } from "./api";
 
 /** The three possible screens in the app */
 type Screen = "profiles" | "entry" | "dashboard";
 
+/** Auth states: loading while checking, authorized if allowed, denied if not */
+type AuthState = "loading" | "authorized" | "denied";
+
 export default function App() {
+  const [authState, setAuthState] = useState<AuthState>("loading");
   const [screen, setScreen] = useState<Screen>("profiles");
   const [profile, setProfile] = useState<string | null>(null);
+
+  // Check authorization on app load before rendering any content
+  useEffect(() => {
+    checkAccess()
+      .then(() => setAuthState("authorized"))
+      .catch(() => setAuthState("denied"));
+  }, []);
 
   /** Navigate to the DayEntry screen for the chosen profile */
   function handleSelectProfile(profileId: string) {
@@ -37,6 +49,19 @@ export default function App() {
   /** Navigate to the analytics dashboard */
   function handleViewInsights() {
     setScreen("dashboard");
+  }
+
+  if (authState === "loading") {
+    return <p style={{ textAlign: "center", marginTop: "4rem" }}>Loading…</p>;
+  }
+
+  if (authState === "denied") {
+    return (
+      <div style={{ textAlign: "center", marginTop: "4rem" }}>
+        <h1>Access Denied</h1>
+        <p>Your Microsoft account is not authorised to use this app.</p>
+      </div>
+    );
   }
 
   return (
