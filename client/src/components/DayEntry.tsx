@@ -44,6 +44,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
   const [words, setWords] = useState(["", "", ""]);
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [submitted, setSubmitted] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -55,6 +56,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
   useEffect(() => {
     async function load() {
       setLoading(true);
+      setJustSubmitted(false);
       try {
         const [existing, pastWords] = await Promise.all([
           fetchEntry(profileId, selectedDate),
@@ -113,6 +115,7 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
     setSubmitting(true);
     try {
       await submitEntry({ profileId, date: selectedDate, score, words: trimmed });
+      setJustSubmitted(true);
       setSubmitted(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to submit");
@@ -158,7 +161,9 @@ export default function DayEntry({ profileId, onBack }: DayEntryProps) {
             {score}/10
           </p>
           <p className="done-words">{words.join(" \u2022 ")}</p>
-          <p className="done-message">Entry saved!</p>
+          <p className="done-message">
+            {justSubmitted ? "Entry saved!" : "Entry already submitted for this date!"}
+          </p>
         </div>
       ) : (
         /* Entry form — score slider + three word inputs */
